@@ -1,0 +1,3 @@
+/home/Dima/CLionProjects/ThreeDL/cmake-build-debug/CMakeFiles/ThreeDL.dir
+/home/Dima/CLionProjects/ThreeDL/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/Dima/CLionProjects/ThreeDL/cmake-build-debug/CMakeFiles/rebuild_cache.dir

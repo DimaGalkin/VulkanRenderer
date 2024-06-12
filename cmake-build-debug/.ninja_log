@@ -1,0 +1,5 @@
+# ninja log v6
+0	12	1718210922523794129	CMakeFiles/ThreeDL.dir/engine/vulkan/vulkan-utils.cpp.o	dab2e1095a8d334
+0	12	1718210922523794129	CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o	cd7e8573e5a6b6e7
+0	6517	1718212621330240623	CMakeFiles/ThreeDL.dir/main.cpp.o	2a96e58636beca4f
+6518	6616	1718212627848173358	ThreeDL	fed4ac2540ac32f5
