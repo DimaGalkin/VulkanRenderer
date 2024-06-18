@@ -55,14 +55,14 @@ build CMakeFiles/ThreeDL.dir/main.cpp.o: CXX_COMPILER__ThreeDL_unscanned_Debug /
   OBJECT_DIR = CMakeFiles/ThreeDL.dir
   OBJECT_FILE_DIR = CMakeFiles/ThreeDL.dir
 
-build CMakeFiles/ThreeDL.dir/engine/vulkan/vulkan-utils.cpp.o: CXX_COMPILER__ThreeDL_unscanned_Debug /home/Dima/CLionProjects/ThreeDL/engine/vulkan/vulkan-utils.cpp || cmake_object_order_depends_target_ThreeDL
-  DEP_FILE = CMakeFiles/ThreeDL.dir/engine/vulkan/vulkan-utils.cpp.o.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
-  OBJECT_DIR = CMakeFiles/ThreeDL.dir
-  OBJECT_FILE_DIR = CMakeFiles/ThreeDL.dir/engine/vulkan
-
 build CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: CXX_COMPILER__ThreeDL_unscanned_Debug /home/Dima/CLionProjects/ThreeDL/engine/threedl.cpp || cmake_object_order_depends_target_ThreeDL
   DEP_FILE = CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/ThreeDL.dir
+  OBJECT_FILE_DIR = CMakeFiles/ThreeDL.dir/engine
+
+build CMakeFiles/ThreeDL.dir/engine/objects.cpp.o: CXX_COMPILER__ThreeDL_unscanned_Debug /home/Dima/CLionProjects/ThreeDL/engine/objects.cpp || cmake_object_order_depends_target_ThreeDL
+  DEP_FILE = CMakeFiles/ThreeDL.dir/engine/objects.cpp.o.d
   FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
   OBJECT_DIR = CMakeFiles/ThreeDL.dir
   OBJECT_FILE_DIR = CMakeFiles/ThreeDL.dir/engine
@@ -75,7 +75,7 @@ build CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: CXX_COMPILER__ThreeDL_unscann
 #############################################
 # Link the executable ThreeDL
 
-build ThreeDL: CXX_EXECUTABLE_LINKER__ThreeDL_Debug CMakeFiles/ThreeDL.dir/main.cpp.o CMakeFiles/ThreeDL.dir/engine/vulkan/vulkan-utils.cpp.o CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o
+build ThreeDL: CXX_EXECUTABLE_LINKER__ThreeDL_Debug CMakeFiles/ThreeDL.dir/main.cpp.o CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o CMakeFiles/ThreeDL.dir/engine/objects.cpp.o
   FLAGS = -g
   LINK_LIBRARIES = -lglfw  -lvulkan
   OBJECT_DIR = CMakeFiles/ThreeDL.dir

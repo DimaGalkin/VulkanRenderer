@@ -14,9 +14,13 @@
 #include <cstring>
 #include <cstdlib>
 #include <array>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
+
+#include "buffers.hpp"
+#include "../objects.hpp"
 
 const std::vector<const char*> DeviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -35,111 +39,93 @@ struct SwapChainSupportDetails {
 
 struct UniformBufferObject {
     glm::mat4 proj;
+    glm::mat4 model;
 };
 
-class Vertex {
+std::vector<Vertex> verts_lst = OBJLoader::load("../MiG35.obj");
+
+class RendererInfo {
     public:
-        Vertex(const glm::vec3& pos, const glm::vec3& color) : pos {pos}, color {color} {}
+        explicit RendererInfo(GLFWwindow* window) : window_ {window} {};
 
-        glm::vec3 pos;
-        glm::vec3 color;
+        // 720p default
+        int width_ = 1280;
+        int height_ = 720;
 
-        static vk::VertexInputBindingDescription getBindingDescription() {
-            vk::VertexInputBindingDescription bindingDescription = {};
-            bindingDescription.binding = 0;
-            bindingDescription.stride = sizeof(Vertex);
-            bindingDescription.inputRate = vk::VertexInputRate::eVertex;
+        std::string title_ = "ThreeDL App"; // Default title
 
-            return bindingDescription;
-        }
-
-        static std::array<vk::VertexInputAttributeDescription, 2> getAttributeDescriptions() {
-            std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions = {};
-            attributeDescriptions[0].binding = 0;
-            attributeDescriptions[0].location = 0;
-            attributeDescriptions[0].format = vk::Format::eR32G32Sfloat;
-            attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-            attributeDescriptions[1].binding = 0;
-            attributeDescriptions[1].location = 1;
-            attributeDescriptions[1].format = vk::Format::eR32G32B32Sfloat;
-            attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-            return attributeDescriptions;
-        }
-};
-
-const std::vector<Vertex> verts_lst = {
-    {{0.0f, 0.0f, -5.0f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    {{0.0f, 0.5f, -0.0f}, {1.0f, 0.0f, 0.0f}},
-    {{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}
+        GLFWwindow* window_ = nullptr;
 };
 
 template <typename T> class vlkn {
     public:
+        vlkn<T>(GLFWwindow* window) : info_ {window} {
+            glfwSetWindowUserPointer(info_.window_, this);
+            glfwSetFramebufferSizeCallback(info_.window_, onResize);
+        };
+
         void run() {
-            initWindow();
             initVulkan();
             mainLoop();
             cleanup();
         }
 
+        ~vlkn() {
+            delete mem_vert_;
+        }
+
     private:
-        GLFWwindow* window;
-        std::string title_ = "ThreeDL App";
-        int width_ = 800;
-        int height_ = 600;
+        RendererInfo info_;
+
+        MemoryBuffer<T>* mem_vert_;
+        std::vector<MemoryBuffer<UniformBufferObject>*> uniform_buffers_;
+
+        vk::SurfaceKHR surface_;
+        vk::SwapchainKHR swapchain_;
 
         vk::UniqueInstance instance_;
-        vk::SurfaceKHR surface_;
         vk::PhysicalDevice physical_device_;
-        vk::UniqueDevice device_;
+        std::shared_ptr<vk::Device> device_;
+
         vk::Queue graphics_queue_;
         vk::Queue present_queue_;
-        vk::SwapchainKHR swapchain_;
+
         std::vector<vk::Image> images_;
-        vk::Format format_;
-        vk::Extent2D extent_;
         std::vector<vk::ImageView> image_views_;
         std::vector<vk::Framebuffer> framebuffers_;
-        vk::RenderPass render_pass_;
-        vk::PipelineLayout pipeline_layout_;
-        vk::Pipeline graphics_pipeline_;
-        vk::CommandPool command_pool_;
-        vk::Buffer vertex_buffer_;
-        vk::DeviceMemory vertex_buffer_memory_;
         std::vector<vk::CommandBuffer> command_buffers_;
         std::vector<vk::Semaphore> image_available_;
         std::vector<vk::Semaphore> render_finished_;
         std::vector<vk::Fence> fences_;
+        std::vector<vk::DescriptorSet> descriptor_sets_;
+
+        vk::Format format_;
+        vk::Extent2D extent_;
+
+        vk::RenderPass render_pass_;
+        vk::Pipeline graphics_pipeline_;
+
+        vk::DescriptorSetLayout ubo_layout_;
+        vk::PipelineLayout pipeline_layout_;
+
+        vk::CommandPool command_pool_;
+        vk::DescriptorPool descriptor_pool_;
+
         size_t current_frame_ = 0;
         bool resized_ = false;
         int max_f_frames_ = 2;
         int vertex_count_ = 0;
 
-        void initWindow() {
-            glfwInit();
-            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no opengl
-
-            window = glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr);
-
-            glfwSetWindowUserPointer(window, this);
-            glfwSetFramebufferSizeCallback(window, onResize);
-        }
-
         static void onResize(GLFWwindow* window, const int width, const int height) {
             const auto instance = reinterpret_cast<vlkn*>(glfwGetWindowUserPointer(window));
 
-            instance->width_ = width;
-            instance->height_ = height;
+            instance->info_.width_ = width;
+            instance->info_.height_ = height;
             instance->resized_ = true;
         }
 
         void mainLoop() {
-            while (!glfwWindowShouldClose(window)) {
+            while (!glfwWindowShouldClose(info_.window_)) {
                 glfwPollEvents();
                 drawFrame();
             }
@@ -161,36 +147,28 @@ template <typename T> class vlkn {
         void cleanup() {
             cleanupSwapChain();
 
-            device_->destroyBuffer(vertex_buffer_);
             device_->destroyCommandPool(command_pool_);
-            device_->freeMemory(vertex_buffer_memory_);
-
-            device_->destroyDescriptorPool(descriptorPool);
-            device_->destroyPipelineLayout(pipelineLayout);
-            device_->destroyDescriptorSetLayout(descriptorSetLayout);
+            device_->destroyDescriptorSetLayout(ubo_layout_);
+            device_->destroyDescriptorPool(descriptor_pool_);
 
             for (size_t i = 0; i < max_f_frames_; ++i) {
                 device_->destroyFence(fences_[i]);
                 device_->destroySemaphore(render_finished_[i]);
                 device_->destroySemaphore(image_available_[i]);
 
-                device_->unmapMemory(uniformBuffersMemory[i]);
-                device_->destroyBuffer(uniformBuffers[i]);
-                device_->freeMemory(uniformBuffersMemory[i]);
+                delete uniform_buffers_[i];
             }
 
             instance_->destroySurfaceKHR(surface_);
 
-            device_->destroyDescriptorSetLayout(descriptorSetLayout);
-
-            glfwDestroyWindow(window);
+            glfwDestroyWindow(info_.window_);
             glfwTerminate();
         }
 
         void recreateSwapChain() {
-            width_ = 0; height_ = 0;
-            while (width_ == 0 || height_ == 0) {
-                glfwGetFramebufferSize(window, &width_, &height_);
+            info_.width_ = 0; info_.height_ = 0;
+            while (info_.width_ == 0 || info_.height_ == 0) {
+                glfwGetFramebufferSize(info_.window_, &info_.width_, &info_.height_);
                 glfwWaitEvents();
             }
             device_->waitIdle();
@@ -206,7 +184,7 @@ template <typename T> class vlkn {
 
         void createInstance() {
             const vk::ApplicationInfo application_info = {
-                title_.c_str(),
+                info_.title_.c_str(),
                 VK_MAKE_VERSION(0, 0, 0),
                 "ThreeDL Engine",
                 VK_MAKE_VERSION(0, 0, 0),
@@ -230,7 +208,7 @@ template <typename T> class vlkn {
 
         void createSurface() {
             VkSurfaceKHR surface;
-            if (glfwCreateWindowSurface(instance_.get(), window, nullptr, &surface) != VK_SUCCESS) {
+            if (glfwCreateWindowSurface(instance_.get(), info_.window_, nullptr, &surface) != VK_SUCCESS) {
                 throw std::runtime_error("ERR 2");
             }
 
@@ -268,7 +246,7 @@ template <typename T> class vlkn {
             };
 
             try {
-                device_ = physical_device_.createDeviceUnique(device_info);
+                device_ = std::make_shared<vk::Device>(physical_device_.createDevice(device_info));
             }
             catch (const vk::SystemError& err) {
                 throw std::runtime_error("ERR 5");
@@ -443,78 +421,6 @@ template <typename T> class vlkn {
             }
         }
 
-        void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer, vk::DeviceMemory& bufferMemory) {
-            vk::BufferCreateInfo bufferInfo = {};
-            bufferInfo.size = size;
-            bufferInfo.usage = usage;
-            bufferInfo.sharingMode = vk::SharingMode::eExclusive;
-
-            try {
-                buffer = device_->createBuffer(bufferInfo);
-            }
-            catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 13");
-            }
-
-            vk::MemoryRequirements memRequirements = device_->getBufferMemoryRequirements(buffer);
-
-            vk::MemoryAllocateInfo allocInfo = {};
-            allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-            try {
-                bufferMemory = device_->allocateMemory(allocInfo);
-            }
-            catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 14");
-            }
-
-            device_->bindBufferMemory(buffer, bufferMemory, 0);
-        }
-
-        void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-            vk::CommandBufferAllocateInfo allocInfo = {};
-            allocInfo.level = vk::CommandBufferLevel::ePrimary;
-            allocInfo.commandPool = command_pool_;
-            allocInfo.commandBufferCount = 1;
-
-            vk::CommandBuffer commandBuffer = device_->allocateCommandBuffers(allocInfo)[0];
-
-            vk::CommandBufferBeginInfo beginInfo = {};
-            beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-
-            commandBuffer.begin(beginInfo);
-
-            vk::BufferCopy copyRegion = {};
-            copyRegion.srcOffset = 0; // Optional
-            copyRegion.dstOffset = 0; // Optional
-            copyRegion.size = size;
-            commandBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
-
-            commandBuffer.end();
-
-            vk::SubmitInfo submitInfo = {};
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &commandBuffer;
-
-            graphics_queue_.submit(submitInfo, nullptr);
-            graphics_queue_.waitIdle();
-
-            device_->freeCommandBuffers(command_pool_, commandBuffer);
-        }
-
-        uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
-            vk::PhysicalDeviceMemoryProperties memProperties = physical_device_.getMemoryProperties();
-
-            for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-                if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-                    return i;
-                }
-            }
-
-            throw std::runtime_error("ERR 15");
-        }
-
         void createCommandBuffers() {
             command_buffers_.resize(framebuffers_.size());
 
@@ -554,13 +460,13 @@ template <typename T> class vlkn {
                     &clearColor
                 };
 
-                vk::Buffer buffers[] = { vertex_buffer_ };
+                vk::Buffer buffers[] = { mem_vert_->getBuffer() };
                 vk::DeviceSize offsets[] = { 0 };
 
                 command_buffers_[i].beginRenderPass(pass_info, vk::SubpassContents::eInline);
                 command_buffers_[i].bindPipeline(vk::PipelineBindPoint::eGraphics, graphics_pipeline_);
+                command_buffers_[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout_, 0, 1, &descriptor_sets_[current_frame_], 0, nullptr);
                 command_buffers_[i].bindVertexBuffers(0, 1, buffers, offsets);
-                command_buffers_[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, 1, &descriptorSets[current_frame_], 0, nullptr);
                 command_buffers_[i].draw(static_cast<uint32_t>(vertex_count_), 1, 0, 0);
                 command_buffers_[i].endRenderPass();
 
@@ -589,7 +495,7 @@ template <typename T> class vlkn {
         }
 
         void drawFrame() {
-            updateUBO();
+            newUBO();
 
             if (
                 device_->waitForFences(
@@ -710,7 +616,7 @@ template <typename T> class vlkn {
             }
             else {
                 int width, height;
-                glfwGetFramebufferSize(window, &width, &height);
+                glfwGetFramebufferSize(info_.window_, &width, &height);
 
                 vk::Extent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 
@@ -815,14 +721,14 @@ template <typename T> class vlkn {
             createSwapChain();
             createImageViews();
             createRenderPass();
+            createDescriptorSetLayout();
             createGraphicsPipeline();
             createFramebuffers();
             createCommandPool();
-            createVertexBuffer(verts_lst);
-            setUBOLayout();
-            memUBO();
+            setRenderList(verts_lst);
+            createUniformBuffers();
             createDescriptorPool();
-            createPoolsets();
+            createDescriptorSets();
             createCommandBuffers();
             createSyncObjects();
         };
@@ -887,7 +793,7 @@ template <typename T> class vlkn {
                 {},
                 VK_FALSE,
                 VK_FALSE,
-                vk::PolygonMode::eFill,
+                vk::PolygonMode::eLine,
                 vk::CullModeFlagBits::eBack,
                 vk::FrontFace::eClockwise,
                 VK_FALSE,
@@ -927,10 +833,10 @@ template <typename T> class vlkn {
                 {0.0f, 0.0f, 0.0f, 0.0f}
             };
 
-            static constexpr vk::PipelineLayoutCreateInfo pipe_info = {
+            const vk::PipelineLayoutCreateInfo pipe_info = {
                 {},
-                0, nullptr,
-                0, nullptr
+                1,
+                &ubo_layout_
             };
 
             try {
@@ -966,43 +872,37 @@ template <typename T> class vlkn {
             }
         };
 
-        void createVertexBuffer(std::vector<T> vertices) {
-            const vk::DeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
-            vertex_count_ = vertices.size();
+        void setRenderList(std::vector<T> vertices) {
+             const vk::DeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
+             vertex_count_ = vertices.size();
 
-            vk::Buffer buffer;
-            vk::DeviceMemory buffer_mem;
-            createBuffer(
+             MemoryBuffer<T> buff (
                 buffer_size,
                 vk::BufferUsageFlagBits::eTransferSrc,
                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                buffer,
-                buffer_mem
-            );
+                device_,
+                &graphics_queue_,
+                &command_pool_,
+                &physical_device_
+             );
 
-            void* data = device_->mapMemory(buffer_mem, 0, buffer_size);
-            memcpy(data, vertices.data(), buffer_size);
-            device_->unmapMemory(buffer_mem);
+             buff.set(vertices, buffer_size);
 
-            createBuffer(
+             mem_vert_ = new MemoryBuffer<T> (
                 buffer_size,
                 vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
                 vk::MemoryPropertyFlagBits::eDeviceLocal,
-                vertex_buffer_,
-                vertex_buffer_memory_
-            );
+                device_,
+                &graphics_queue_,
+                &command_pool_,
+                &physical_device_
+             );
 
-            copyBuffer(buffer, vertex_buffer_, buffer_size);
-
-            device_->destroyBuffer(buffer);
-            device_->freeMemory(buffer_mem);
+             mem_vert_->copy(buff, buffer_size);
         };
 
-        vk::DescriptorSetLayout descriptorSetLayout;
-        vk::PipelineLayout pipelineLayout;
-
-        void setUBOLayout() {
-            vk::DescriptorSetLayoutBinding ubo_layout {
+        void createDescriptorSetLayout() {
+            static constexpr vk::DescriptorSetLayoutBinding ubo_binding {
                 0,
                 vk::DescriptorType::eUniformBuffer,
                 1,
@@ -1010,114 +910,88 @@ template <typename T> class vlkn {
                 nullptr
             };
 
-            vk::DescriptorSetLayoutCreateInfo layout_info {
+            const vk::DescriptorSetLayoutCreateInfo layout_info = {
                 {},
                 1,
-                &ubo_layout
+                &ubo_binding
             };
 
-            try {
-                descriptorSetLayout = device_->createDescriptorSetLayout(layout_info);
-            } catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 26");
-            }
-
-            vk::PipelineLayoutCreateInfo pipeline_info {
-                {},
-                1,
-                &descriptorSetLayout
-            };
-
-            try {
-                pipelineLayout = device_->createPipelineLayout(pipeline_info);
-            } catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 27");
-            }
+            if (
+                device_->createDescriptorSetLayout(
+                    &layout_info,
+                    nullptr,
+                    &ubo_layout_
+                ) != vk::Result::eSuccess
+            ) throw std::runtime_error("ERR 14");
         }
 
-        vk::Buffer indexBuffer;
-        vk::DeviceMemory indexBufferMemory;
+        void createUniformBuffers() {
+            static constexpr vk::DeviceSize buffer_size = sizeof(UniformBufferObject);
 
-        std::vector<vk::Buffer> uniformBuffers;
-        std::vector<vk::DeviceMemory> uniformBuffersMemory;
-        std::vector<void*> uniformBuffersMapped;
+            uniform_buffers_.resize(max_f_frames_);
 
-        void memUBO() {
-            vk::DeviceSize bufferSize = sizeof(UniformBufferObject);
-
-            uniformBuffers.resize(images_.size());
-            uniformBuffersMemory.resize(images_.size());
-            uniformBuffersMapped.resize(images_.size());
-
-            for (size_t i = 0; i < images_.size(); i++) {
-                createBuffer(
-                    bufferSize,
+            for (size_t i = 0; i < max_f_frames_; ++i) {
+                uniform_buffers_[i] = new MemoryBuffer<UniformBufferObject> (
+                    buffer_size,
                     vk::BufferUsageFlagBits::eUniformBuffer,
                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                    uniformBuffers[i],
-                    uniformBuffersMemory[i]
+                    device_,
+                    &graphics_queue_,
+                    &command_pool_,
+                    &physical_device_
                 );
-
-                uniformBuffersMapped[i] = device_->mapMemory(uniformBuffersMemory[i], 0, bufferSize);
             }
         }
 
-        void updateUBO() {
-            UniformBufferObject ubo {};
-            ubo.proj = glm::identity<glm::mat4>();
-
-            memcpy(uniformBuffersMapped[current_frame_], &ubo, sizeof(ubo));
-        }
-
-        vk::DescriptorPool descriptorPool;
-        std::vector<vk::DescriptorSet> descriptorSets;
-
         void createDescriptorPool() {
-            vk::DescriptorPoolSize pool_size {
+            const vk::DescriptorPoolSize pool_size = {
                 vk::DescriptorType::eUniformBuffer,
                 static_cast<uint32_t>(max_f_frames_)
             };
 
-            vk::DescriptorPoolCreateInfo pool_info {
+            const vk::DescriptorPoolCreateInfo pool_info = {
                 {},
                 static_cast<uint32_t>(max_f_frames_),
                 1,
                 &pool_size
             };
 
-            try {
-                descriptorPool = device_->createDescriptorPool(pool_info);
-            } catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 28");
-            }
+            if (
+                device_->createDescriptorPool(
+                    &pool_info,
+                    nullptr,
+                    &descriptor_pool_
+                ) != vk::Result::eSuccess
+            ) throw std::runtime_error("ERR 13");
         }
 
-        void createPoolsets() {
-            std::vector<vk::DescriptorSetLayout> layouts (max_f_frames_, descriptorSetLayout);
+        void createDescriptorSets() {
+            std::vector<vk::DescriptorSetLayout> layouts(max_f_frames_, ubo_layout_);
 
-            vk::DescriptorSetAllocateInfo alloc_info {
-                descriptorPool,
+            const vk::DescriptorSetAllocateInfo alloc_info = {
+                descriptor_pool_,
                 static_cast<uint32_t>(max_f_frames_),
                 layouts.data()
             };
 
-            descriptorSets.resize(max_f_frames_);
+            descriptor_sets_.resize(max_f_frames_);
 
-            try {
-                descriptorSets = device_->allocateDescriptorSets(alloc_info);
-            } catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 29");
-            }
+            if (
+                device_->allocateDescriptorSets(
+                    &alloc_info,
+                    descriptor_sets_.data()
+                ) != vk::Result::eSuccess
+            ) throw std::runtime_error("ERR 14");
 
             for (size_t i = 0; i < max_f_frames_; i++) {
-                vk::DescriptorBufferInfo buffer_info {
-                    uniformBuffers.at(i),
+                vk::DescriptorBufferInfo buffer_info = {
+                    uniform_buffers_[i]->getBuffer(),
                     0,
                     sizeof(UniformBufferObject)
                 };
 
-                vk::WriteDescriptorSet descriptor_write {
-                    descriptorSets.at(i),
+                vk::WriteDescriptorSet descriptor_write = {
+                    descriptor_sets_[i],
                     0,
                     0,
                     1,
@@ -1129,5 +1003,18 @@ template <typename T> class vlkn {
 
                 device_->updateDescriptorSets(1, &descriptor_write, 0, nullptr);
             }
+        }
+
+        void newUBO() {
+            UniformBufferObject ubo = {};
+
+            float aspect = extent_.width / static_cast<float>(extent_.height);
+            float fovy = glm::radians(75.0f);
+            float n = 0.01f;
+            float f = 10000.0f;
+
+            ubo.proj = glm::perspective(fovy, aspect, n, f);
+
+            uniform_buffers_[current_frame_]->set({ ubo }, sizeof(ubo));
         }
 };
