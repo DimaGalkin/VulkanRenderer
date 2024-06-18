@@ -12,7 +12,12 @@ int main() {
     );
 
     vlkn<Vertex> app {window};
-    app.run();
+
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+
+        app.newFrame();
+    }
 
     return EXIT_SUCCESS;
 }

@@ -31,13 +31,13 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 14,
+				"line" : 15,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 15,
+				"line" : 16,
 				"parent" : 0
 			}
 		]
@@ -64,7 +64,8 @@
 			[
 				0,
 				2,
-				6
+				6,
+				7
 			]
 		}
 	],
@@ -109,7 +110,8 @@
 			[
 				0,
 				2,
-				6
+				6,
+				7
 			]
 		},
 		{
@@ -161,6 +163,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "engine/objects.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/vulkan/vulkan-utils.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <vector>
 #include <cstring>
-#include <cstdlib>
 #include <array>
 #include <memory>
 #include <optional>
@@ -42,7 +41,7 @@ struct UniformBufferObject {
     glm::mat4 model;
 };
 
-std::vector<Vertex> verts_lst = OBJLoader::load("../MiG35.obj");
+inline std::vector<Vertex> verts_lst = OBJLoader::load("../MiG35.obj");
 
 class RendererInfo {
     public:
@@ -57,20 +56,112 @@ class RendererInfo {
         GLFWwindow* window_ = nullptr;
 };
 
+class VulkanUtils {
+    public:
+        static std::vector<const char*> getRequiredExtensions();
+        static std::vector<char> readFile(const std::string& filename);
+        static bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device);
+        static vk::SurfaceFormatKHR chooseFormat(const std::vector<vk::SurfaceFormatKHR>& available_formats);
+        static vk::PresentModeKHR chooseMode(const std::vector<vk::PresentModeKHR>& available_modes);
+};
+
 template <typename T> class vlkn {
     public:
-        vlkn<T>(GLFWwindow* window) : info_ {window} {
+        explicit vlkn<T>(GLFWwindow* window)
+            : info_ {window},
+              format_ {vk::Format::eUndefined}
+        {
             glfwSetWindowUserPointer(info_.window_, this);
             glfwSetFramebufferSizeCallback(info_.window_, onResize);
+
+            initVulkan();
         };
 
-        void run() {
-            initVulkan();
-            mainLoop();
-            cleanup();
+        static void onResize(GLFWwindow* window, const int width, const int height) {
+            const auto instance = static_cast<vlkn*>(glfwGetWindowUserPointer(window));
+
+            instance->info_.width_ = width;
+            instance->info_.height_ = height;
+            instance->resized_ = true;
+        }
+
+        void newFrame() {
+            newUBO();
+
+            if (
+                device_->waitForFences(
+                    1, &fences_[current_frame_],
+                    VK_TRUE, std::numeric_limits<uint64_t>::max()
+                ) != vk::Result::eSuccess
+            ) throw std::runtime_error("ERR 20");
+
+            uint32_t idx;
+            try {
+                const vk::ResultValue result = device_->acquireNextImageKHR(
+                    swapchain_,
+                    std::numeric_limits<uint64_t>::max(),
+                    image_available_[current_frame_], nullptr
+                );
+                idx = result.value;
+            } catch (const vk::OutOfDateKHRError& err) {
+                recreateSwapChain();
+                return;
+            } catch (const vk::SystemError& err) {
+                throw std::runtime_error("ERR 21");
+            }
+
+            vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            vk::SubmitInfo submit_info = {
+                1,
+                &image_available_[current_frame_],
+                &waitStages,
+                1,
+                &command_buffers_[idx],
+                1,
+                &render_finished_[current_frame_]
+            };
+
+            if (
+                device_->resetFences(
+                    1,
+                    &fences_[current_frame_]
+                ) != vk::Result::eSuccess
+            ) throw std::runtime_error("ERR 22");
+
+            try {
+                graphics_queue_.submit(submit_info, fences_[current_frame_]);
+            } catch (const vk::SystemError& err) {
+                throw std::runtime_error("ERR 23");
+            }
+
+            const vk::PresentInfoKHR present_info {
+                1,
+                &render_finished_[current_frame_],
+                1,
+                &swapchain_,
+                &idx
+            };
+
+            vk::Result r_present;
+            try {
+                r_present = present_queue_.presentKHR(present_info);
+            } catch (const vk::OutOfDateKHRError& err) {
+                r_present = vk::Result::eErrorOutOfDateKHR;
+            } catch (const vk::SystemError& err) {
+                throw std::runtime_error("ERR 24");
+            }
+
+            if (r_present == vk::Result::eSuboptimalKHR || resized_) {
+                resized_ = false;
+                recreateSwapChain();
+                return;
+            }
+
+            current_frame_ = (current_frame_ + 1) % max_f_frames_;
         }
 
         ~vlkn() {
+            cleanup();
             delete mem_vert_;
         }
 
@@ -116,23 +207,6 @@ template <typename T> class vlkn {
         int max_f_frames_ = 2;
         int vertex_count_ = 0;
 
-        static void onResize(GLFWwindow* window, const int width, const int height) {
-            const auto instance = reinterpret_cast<vlkn*>(glfwGetWindowUserPointer(window));
-
-            instance->info_.width_ = width;
-            instance->info_.height_ = height;
-            instance->resized_ = true;
-        }
-
-        void mainLoop() {
-            while (!glfwWindowShouldClose(info_.window_)) {
-                glfwPollEvents();
-                drawFrame();
-            }
-
-            device_->waitIdle();
-        }
-
         void cleanupSwapChain() {
             for (const auto& framebuffer : framebuffers_) device_->destroyFramebuffer(framebuffer);
             for (const auto& image_view : image_views_) device_->destroyImageView(image_view);
@@ -171,6 +245,7 @@ template <typename T> class vlkn {
                 glfwGetFramebufferSize(info_.window_, &info_.width_, &info_.height_);
                 glfwWaitEvents();
             }
+
             device_->waitIdle();
 
             cleanupSwapChain();
@@ -191,7 +266,7 @@ template <typename T> class vlkn {
                 VK_API_VERSION_1_0
             };
 
-            const std::vector<const char*> extensions = getRequiredExtensions();
+            const std::vector<const char*> extensions = VulkanUtils::getRequiredExtensions();
             const vk::InstanceCreateInfo instance_info = {
                 {},
                 &application_info,
@@ -262,8 +337,8 @@ template <typename T> class vlkn {
                 physical_device_.getSurfaceFormatsKHR(surface_),
                 physical_device_.getSurfacePresentModesKHR(surface_)
             };
-            const vk::SurfaceFormatKHR surfaceFormat = chooseFormat(sc_support.formats);
-            const vk::PresentModeKHR presentMode = chooseMode(sc_support.presentModes);
+            const vk::SurfaceFormatKHR surfaceFormat = VulkanUtils::chooseFormat(sc_support.formats);
+            const vk::PresentModeKHR presentMode = VulkanUtils::chooseMode(sc_support.presentModes);
             const vk::Extent2D extent = chooseExtent(sc_support.capabilities);
 
             uint32_t imageCount = sc_support.capabilities.minImageCount + 1;
@@ -310,7 +385,7 @@ template <typename T> class vlkn {
             format_ = surfaceFormat.format;
         }
 
-    void createImageViews() {
+        void createImageViews() {
             image_views_.resize(images_.size());
 
             for (size_t i = 0; i < images_.size(); i++) {
@@ -460,8 +535,8 @@ template <typename T> class vlkn {
                     &clearColor
                 };
 
-                vk::Buffer buffers[] = { mem_vert_->getBuffer() };
-                vk::DeviceSize offsets[] = { 0 };
+                const vk::Buffer buffers[] = { mem_vert_->getBuffer() };
+                static constexpr vk::DeviceSize offsets[] = { 0 };
 
                 command_buffers_[i].beginRenderPass(pass_info, vk::SubpassContents::eInline);
                 command_buffers_[i].bindPipeline(vk::PipelineBindPoint::eGraphics, graphics_pipeline_);
@@ -494,82 +569,7 @@ template <typename T> class vlkn {
             }
         }
 
-        void drawFrame() {
-            newUBO();
-
-            if (
-                device_->waitForFences(
-                    1, &fences_[current_frame_],
-                    VK_TRUE, std::numeric_limits<uint64_t>::max()
-                ) != vk::Result::eSuccess
-            ) throw std::runtime_error("ERR 20");
-
-            uint32_t idx;
-            try {
-                const vk::ResultValue result = device_->acquireNextImageKHR(
-                    swapchain_,
-                    std::numeric_limits<uint64_t>::max(),
-                    image_available_[current_frame_], nullptr
-                );
-                idx = result.value;
-            } catch (const vk::OutOfDateKHRError& err) {
-                recreateSwapChain();
-                return;
-            } catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 21");
-            }
-
-            vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            vk::SubmitInfo submit_info = {
-                1,
-                &image_available_[current_frame_],
-                &waitStages,
-                1,
-                &command_buffers_[idx],
-                1,
-                &render_finished_[current_frame_]
-            };
-
-            if (
-                device_->resetFences(
-                    1,
-                    &fences_[current_frame_]
-                ) != vk::Result::eSuccess
-            ) throw std::runtime_error("ERR 22");
-
-            try {
-                graphics_queue_.submit(submit_info, fences_[current_frame_]);
-            } catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 23");
-            }
-
-            const vk::PresentInfoKHR present_info {
-                1,
-                &render_finished_[current_frame_],
-                1,
-                &swapchain_,
-                &idx
-            };
-
-            vk::Result r_present;
-            try {
-                r_present = present_queue_.presentKHR(present_info);
-            } catch (const vk::OutOfDateKHRError& err) {
-                r_present = vk::Result::eErrorOutOfDateKHR;
-            } catch (const vk::SystemError& err) {
-                throw std::runtime_error("ERR 24");
-            }
-
-            if (r_present == vk::Result::eSuboptimalKHR || resized_) {
-                resized_ = false;
-                recreateSwapChain();
-                return;
-            }
-
-            current_frame_ = (current_frame_ + 1) % max_f_frames_;
-        }
-
-        vk::UniqueShaderModule createShaderModule(const std::vector<char>& code) {
+        [[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::vector<char>& code) const {
             try {
                 return device_->createShaderModuleUnique({
                     {},
@@ -581,136 +581,75 @@ template <typename T> class vlkn {
             }
         }
 
-        vk::SurfaceFormatKHR chooseFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) {
-            if (availableFormats.size() == 1 && availableFormats[0].format == vk::Format::eUndefined) {
-                return { vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
-            }
-
-            for (const auto& availableFormat : availableFormats) {
-                if (availableFormat.format == vk::Format::eB8G8R8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
-                    return availableFormat;
-                }
-            }
-
-            return availableFormats[0];
-        }
-
-        vk::PresentModeKHR chooseMode(const std::vector<vk::PresentModeKHR> availablePresentModes) {
-            vk::PresentModeKHR bestMode = vk::PresentModeKHR::eFifo;
-
-            for (const auto& availablePresentMode : availablePresentModes) {
-                if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
-                    return availablePresentMode;
-                }
-                else if (availablePresentMode == vk::PresentModeKHR::eImmediate) {
-                    bestMode = availablePresentMode;
-                }
-            }
-
-            return bestMode;
-        }
-
-        vk::Extent2D chooseExtent(const vk::SurfaceCapabilitiesKHR& capabilities) {
+        [[nodiscard]] vk::Extent2D chooseExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const  {
             if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
                 return capabilities.currentExtent;
             }
-            else {
-                int width, height;
-                glfwGetFramebufferSize(info_.window_, &width, &height);
 
-                vk::Extent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+            int width, height;
+            glfwGetFramebufferSize(info_.window_, &width, &height);
 
-                actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-                actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+            vk::Extent2D extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 
-                return actualExtent;
-            }
+            extent.width = std::max(
+                capabilities.minImageExtent.width,
+                std::min(capabilities.maxImageExtent.width, extent.width)
+            );
+            extent.height = std::max(
+                capabilities.minImageExtent.height,
+                std::min(capabilities.maxImageExtent.height, extent.height)
+            );
+
+            return extent;
         }
 
-        SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) {
-            SwapChainSupportDetails details;
-            details.capabilities = device.getSurfaceCapabilitiesKHR(surface_);
-            details.formats = device.getSurfaceFormatsKHR(surface_);
-            details.presentModes = device.getSurfacePresentModesKHR(surface_);
-
-            return details;
+        [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const  {
+            return {
+                device.getSurfaceCapabilitiesKHR(surface_),
+                device.getSurfaceFormatsKHR(surface_),
+                device.getSurfacePresentModesKHR(surface_)
+            };
         }
 
-        bool isDeviceSuitable(const vk::PhysicalDevice& device) {
-            QueueFamilyIndices indices = findQueueFamilies(device);
-
-            bool extensionsSupported = checkDeviceExtensionSupport(device);
-
+        [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const {
+            const auto [graphics, present] = findQueueFamilies(device);
+            const bool supported_extensions = VulkanUtils::checkDeviceExtensionSupport(device);
             bool swapChainAdequate = false;
-            if (extensionsSupported) {
-                SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
-                swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+
+            if (supported_extensions) {
+                const SwapChainSupportDetails sc_support = querySwapChainSupport(device);
+                swapChainAdequate = !sc_support.formats.empty() && !sc_support.presentModes.empty();
             }
 
-            return indices.graphicsFamily.has_value() && indices.presentFamily.has_value() && extensionsSupported && swapChainAdequate;
+            return graphics.has_value() && present.has_value() && supported_extensions && swapChainAdequate;
         }
 
-        bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device) {
-            std::set<std::string> requiredExtensions(DeviceExtensions.begin(), DeviceExtensions.end());
-
-            for (const auto& extension : device.enumerateDeviceExtensionProperties()) {
-                requiredExtensions.erase(extension.extensionName);
-            }
-
-            return requiredExtensions.empty();
-        }
-
-        QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device) {
+        [[nodiscard]] QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice& device) const {
             QueueFamilyIndices indices;
 
-            auto queueFamilies = device.getQueueFamilyProperties();
+            std::vector<vk::QueueFamilyProperties> families = device.getQueueFamilyProperties();
 
             int i = 0;
-            for (const auto& queueFamily : queueFamilies) {
-                if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
-                    indices.graphicsFamily = i;
-                }
+            for (const auto& queueFamily : families) {
+                if (
+                    queueFamily.queueCount > 0 &&
+                    queueFamily.queueFlags & vk::QueueFlagBits::eGraphics
+                ) indices.graphicsFamily = i;
 
-                if (queueFamily.queueCount > 0 && device.getSurfaceSupportKHR(i, surface_)) {
-                    indices.presentFamily = i;
-                }
+                if (
+                    queueFamily.queueCount > 0 &&
+                    device.getSurfaceSupportKHR(i, surface_)
+                ) indices.presentFamily = i;
 
-                if (indices.graphicsFamily.has_value() && indices.presentFamily.has_value()) {
-                    break;
-                }
+                if (
+                    indices.graphicsFamily.has_value() &&
+                    indices.presentFamily.has_value()
+                ) break;
 
-                i++;
+                ++i;
             }
 
             return indices;
-        }
-
-        std::vector<const char*> getRequiredExtensions() {
-            uint32_t glfwExtensionCount = 0;
-            const char** glfwExtensions;
-            glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-            std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-            return extensions;
-        }
-
-        static std::vector<char> readFile(const std::string& filename) {
-            std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-            if (!file.is_open()) {
-                throw std::runtime_error("failed to open file!");
-            }
-
-            size_t fileSize = (size_t)file.tellg();
-            std::vector<char> buffer(fileSize);
-
-            file.seekg(0);
-            file.read(buffer.data(), fileSize);
-
-            file.close();
-
-            return buffer;
         }
 
         void initVulkan() {
@@ -734,8 +673,8 @@ template <typename T> class vlkn {
         };
 
         void createGraphicsPipeline() {
-            const vk::UniqueShaderModule vert = createShaderModule(readFile("../shaders/vert.spv"));
-            const vk::UniqueShaderModule frag = createShaderModule(readFile("../shaders/frag.spv"));
+            const vk::UniqueShaderModule vert = createShaderModule(VulkanUtils::readFile("../shaders/vert.spv"));
+            const vk::UniqueShaderModule frag = createShaderModule(VulkanUtils::readFile("../shaders/frag.spv"));
 
             const vk::PipelineShaderStageCreateInfo stages[] = {
                 {
@@ -910,7 +849,7 @@ template <typename T> class vlkn {
                 nullptr
             };
 
-            const vk::DescriptorSetLayoutCreateInfo layout_info = {
+            static constexpr vk::DescriptorSetLayoutCreateInfo layout_info = {
                 {},
                 1,
                 &ubo_binding
@@ -1005,7 +944,7 @@ template <typename T> class vlkn {
             }
         }
 
-        void newUBO() {
+        void newUBO() const {
             UniformBufferObject ubo = {};
 
             float aspect = extent_.width / static_cast<float>(extent_.height);
