@@ -3,12 +3,17 @@
 #include <vulkan/vulkan.hpp>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <vector>
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <iostream>
+#include <memory>
+
+#include "vulkan/buffers.hpp"
+
+template <typename T> class vlkn;
 
 class Vertex {
     public:
@@ -44,7 +49,7 @@ class Vertex {
 
 class OBJLoader {
     public:
-        static std::vector<std::string> msplit (const std::string& str, const char& delimiter) {
+        static std::vector<std::string> split(const std::string& str, const char& delimiter) {
             std::vector<std::string> tokens;
             std::string token;
             std::istringstream tokenStream {str};
@@ -56,7 +61,7 @@ class OBJLoader {
             return tokens;
         }
 
-        static std::vector<Vertex> load(const std::string& path_) {
+        static std::unique_ptr<std::vector<Vertex>> load(const std::string& path_) {
             std::vector<glm::vec3> vertices;
             std::vector<Vertex> verts;
 
@@ -69,7 +74,7 @@ class OBJLoader {
             std::string line;
 
             for (std::string line; std::getline(file, line);) {
-                auto tokens = msplit(line, ' ');
+                auto tokens = split(line, ' ');
 
                 if (tokens[0] == "v") {
                     vertices.push_back({
@@ -78,9 +83,9 @@ class OBJLoader {
                         std::stof(tokens[3])
                     });
                 } else if (tokens[0] == "f") {
-                    auto v1 = msplit(tokens[1], '/');
-                    auto v2 = msplit(tokens[2], '/');
-                    auto v3 = msplit(tokens[3], '/');
+                    auto v1 = split(tokens[1], '/');
+                    auto v2 = split(tokens[2], '/');
+                    auto v3 = split(tokens[3], '/');
 
                     verts.push_back({
                         vertices[std::stoi(v1[0]) - 1],
@@ -99,6 +104,61 @@ class OBJLoader {
                 }
             }
 
-            return verts;
+            return std::make_unique<std::vector<Vertex>>(verts);
         }
+};
+
+class Mesh {
+    public:
+        explicit Mesh(const std::string& path) : vertices_ {OBJLoader::load(path)} {}
+
+        void init_buffer(
+            const std::shared_ptr<vk::Device>& device,
+            vk::Queue* graphics_queue,
+            vk::CommandPool* command_pool,
+            vk::PhysicalDevice* p_device
+        ) {
+            if (buffer_ != nullptr) return;
+
+            buffer_ = new MemoryBuffer<Vertex>(
+                vertices_->size() * sizeof(vertices_->at(0)),
+                vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+                vk::MemoryPropertyFlagBits::eDeviceLocal,
+                device,
+                graphics_queue,
+                command_pool,
+                p_device
+            );
+
+            MemoryBuffer<Vertex> copy_buffer {
+                vertices_->size() * sizeof(vertices_->at(0)),
+                vk::BufferUsageFlagBits::eTransferSrc,
+                vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                device,
+                graphics_queue,
+                command_pool,
+                p_device
+            };
+
+            copy_buffer.set(*vertices_, vertices_->size() * sizeof(vertices_->at(0)));
+            buffer_->copy(copy_buffer, vertices_->size() * sizeof(vertices_->at(0)));
+        }
+
+        void render(
+            const vk::CommandBuffer& command_buffer
+        ) const {
+            const vk::Buffer buffers[] = { buffer_->getBuffer() };
+            const vk::DeviceSize offsets[] = { 0 };
+            command_buffer.bindVertexBuffers(0, 1, buffers, offsets);
+            command_buffer.draw(static_cast<uint32_t>(vertices_->size()), 1, 0, 0);
+        }
+
+        ~Mesh() {
+            delete buffer_;
+        }
+
+        std::unique_ptr<std::vector<Vertex>> vertices_;
+        MemoryBuffer<Vertex>* buffer_ = nullptr;
+    private:
+        glm::mat4 model_ = glm::mat4(1.0f);
 };

@@ -1,23 +1,15 @@
-#include "engine/vulkan/vulkan-utils.hpp"
+#include "engine/threedl.hpp"
 
 int main() {
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no opengl
+    ThreeDL app {};
 
-    GLFWwindow* window = glfwCreateWindow(
-        1280,
-        720,
-        "ThreeDL App",
-        nullptr, nullptr
-    );
+    auto plane_one = std::make_shared<Mesh>("../MiG35.obj");
+    auto plane_two = std::make_shared<Mesh>("../mig2.obj");
 
-    vlkn<Vertex> app {window};
+    app.add(plane_one);
+    app.add(plane_one);
 
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-
-        app.newFrame();
-    }
+    app.start();
 
     return EXIT_SUCCESS;
 }

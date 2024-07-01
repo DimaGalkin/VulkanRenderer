@@ -109,12 +109,6 @@ template <typename T> class MemoryBuffer {
             return *this;
         }
 
-        ~MemoryBuffer() {
-            // Needed for Vulkan to release GPU resources
-            device_->destroyBuffer(*buffer_);
-            device_->freeMemory(*memory_);
-        };
-
     private:
         std::shared_ptr<vk::Device> device_;
 
