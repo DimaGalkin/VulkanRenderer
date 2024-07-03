@@ -10,7 +10,8 @@ add_executable(ThreeDL main.cpp
         engine/vulkan/buffers.hpp
         engine/objects.hpp
         engine/objects.cpp
-        engine/vulkan/vulkan-utils.cpp)
+        engine/vulkan/vulkan-utils.cpp
+        engine/vulkan/buffers.cpp)
 
 target_link_libraries(ThreeDL glfw)
 target_link_libraries(ThreeDL vulkan)
