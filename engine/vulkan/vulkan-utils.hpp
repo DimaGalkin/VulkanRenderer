@@ -10,6 +10,8 @@
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -85,11 +87,6 @@ class Vlkn {
         RendererInfo info_;
         bool resized_ = false;
 
-        vk::PhysicalDevice physical_device_;
-        std::shared_ptr<vk::Device> device_;
-        vk::Queue graphics_queue_;
-        vk::CommandPool command_pool_;
-
         explicit Vlkn(GLFWwindow* window)
             : info_ { window },
               mem_vert_ { nullptr },
@@ -107,8 +104,8 @@ class Vlkn {
         }
 
     private:
-        MemoryBuffer<Vertex>* mem_vert_;
-        std::vector<MemoryBuffer<UniformBufferObject>*> uniform_buffers_;
+        MemoryBuffer* mem_vert_;
+        std::vector<MemoryBuffer*> uniform_buffers_;
 
         std::vector<ObjectPtr> objects_;
 
@@ -118,6 +115,11 @@ class Vlkn {
         vk::UniqueInstance instance_;
 
         vk::Queue present_queue_;
+
+        vk::PhysicalDevice physical_device_;
+        vk::Device device_;
+        vk::Queue graphics_queue_;
+        vk::CommandPool command_pool_;
 
         std::vector<vk::Image> images_;
         std::vector<vk::ImageView> image_views_;
@@ -135,6 +137,7 @@ class Vlkn {
         vk::Pipeline graphics_pipeline_;
 
         vk::DescriptorSetLayout ubo_layout_;
+        vk::DescriptorSetLayout texture_layout_;
         vk::PipelineLayout pipeline_layout_;
 
         vk::DescriptorPool descriptor_pool_;

@@ -2,10 +2,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-#define STB_IMAGE_STATIC
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -17,41 +13,46 @@
 
 #include "vulkan/buffers.hpp"
 
-template <typename T> class vlkn;
-
 class Vertex {
     public:
         Vertex(
             const glm::vec3& pos,
-            const glm::vec3& color
+            const glm::vec3& color,
+            const glm::vec2& uv
         ) : pos { pos },
-            color { color }
+            color { color },
+            uv { uv }
         {}
 
         glm::vec3 pos, color;
+        glm::vec2 uv;
 
         static vk::VertexInputBindingDescription getBindingDescription();
-        static std::array<vk::VertexInputAttributeDescription, 2> getAttributeDescriptions();
+        static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions();
 };
 
 class OBJLoader {
     public:
-        static std::vector<std::string> split(const std::string& str, const char& delimiter);
+        static std::vector<std::string> split(const std::string& str, char delimiter);
         static std::unique_ptr<std::vector<Vertex>> load(const std::string& path);
 };
 
 class Mesh {
     public:
-        explicit Mesh(const std::string& path) : path_ {path} {}
+        explicit Mesh(
+            const std::string& path
+        ) : path_ { path } {}
 
         void init_buffer(
-            const std::shared_ptr<vk::Device>& device,
-            vk::Queue* graphics_queue,
-            vk::CommandPool* command_pool,
-            vk::PhysicalDevice* p_device
+            vk::Device device,
+            vk::Queue graphics_queue,
+            vk::CommandPool command_pool,
+            vk::PhysicalDevice p_device
         );
 
-        void render(const vk::CommandBuffer& command_buffer) const;
+        void render(
+            const vk::CommandBuffer& command_buffer
+        ) const;
 
         void load() {
             if (loaded_) return;
@@ -60,12 +61,10 @@ class Mesh {
             loaded_ = true;
         }
 
-        ~Mesh() {
-            delete buffer_;
-        }
+        ~Mesh() = default;
 
         std::unique_ptr<std::vector<Vertex>> vertices_;
-        MemoryBuffer<Vertex>* buffer_ = nullptr;
+        MemoryBuffer* buffer_ = nullptr;
 
     private:
         std::string path_;
@@ -75,37 +74,33 @@ using MeshPtr = std::shared_ptr<Mesh>;
 
 class Texture {
     public:
-        explicit Texture(const std::string& path) : path_ {path} {}
+        explicit Texture(
+            const std::string& path
+        ) : path_ { path } {}
 
         void load(
-            const std::shared_ptr<vk::Device>& device,
-            vk::Queue* graphics_queue,
-            vk::CommandPool* command_pool,
-            vk::PhysicalDevice* p_device
+            vk::Device device,
+            vk::Queue graphics_queue,
+            vk::CommandPool command_pool,
+            vk::PhysicalDevice p_device,
+            const vk::DescriptorSetLayout& layout,
+            const vk::DescriptorPool& descriptor_pool
         );
 
-        ~Texture() {
-            delete pixel_data_;
+        void render(
+            const vk::CommandBuffer& command_buffer,
+            const vk::PipelineLayout& pipeline_layout
+        ) const;
 
-            if (image_) {
-                device_->destroyImage(image_);
-            }
-            if (image_memory_) {
-                device_->freeMemory(image_memory_);
-            }
-        }
+        ~Texture() = default;
 
     private:
         std::string path_;
-
         bool loaded_ = false;
 
-        MemoryBuffer<stbi_uc*>* pixel_data_ = nullptr;
+        vk::Device device_;
 
-        std::shared_ptr<vk::Device> device_;
-
-        vk::Image image_;
-        vk::DeviceMemory image_memory_;
+        Image image_;
 };
 using TexturePtr = std::shared_ptr<Texture>;
 
@@ -125,27 +120,40 @@ class Object {
             tex_ {std::make_shared<Texture>(tex_path)}
         {}
 
-        void load_texture(
-            const std::shared_ptr<vk::Device>& device,
-            vk::Queue* graphics_queue,
-            vk::CommandPool* command_pool,
-            vk::PhysicalDevice* p_device
+        void loadTexture(
+            const vk::Device device,
+            const vk::Queue graphics_queue,
+            const vk::CommandPool command_pool,
+            const vk::PhysicalDevice p_device,
+            const vk::DescriptorSetLayout& layout,
+            const vk::DescriptorPool& descriptor_pool
         ) const {
-            //tex_->load(device, graphics_queue, command_pool, p_device);
+            tex_->load(
+                device,
+                graphics_queue,
+                command_pool,
+                p_device,
+                layout,
+                descriptor_pool
+            );
         }
 
-        void load_mesh(
-            const std::shared_ptr<vk::Device>& device,
-            vk::Queue* graphics_queue,
-            vk::CommandPool* command_pool,
-            vk::PhysicalDevice* p_device
+        void loadMesh(
+            const vk::Device device,
+            const vk::Queue graphics_queue,
+            const vk::CommandPool command_pool,
+            const vk::PhysicalDevice p_device
         ) const {
             mesh_->load();
             mesh_->init_buffer(device, graphics_queue, command_pool, p_device);
         }
 
-        void render(const vk::CommandBuffer& command_buffer) const {
+        void render(
+            const vk::CommandBuffer& command_buffer,
+            const vk::PipelineLayout& pipeline_layout
+        ) const {
             mesh_->render(command_buffer);
+            tex_->render(command_buffer, pipeline_layout);
         }
 
         MeshPtr mesh_;

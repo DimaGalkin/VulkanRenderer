@@ -8,7 +8,7 @@ vk::VertexInputBindingDescription Vertex::getBindingDescription() {
     };
 }
 
-std::array<vk::VertexInputAttributeDescription, 2> Vertex::getAttributeDescriptions() {
+std::array<vk::VertexInputAttributeDescription, 3> Vertex::getAttributeDescriptions() {
     return {
         vk::VertexInputAttributeDescription {
             0,
@@ -21,13 +21,19 @@ std::array<vk::VertexInputAttributeDescription, 2> Vertex::getAttributeDescripti
             0,
             vk::Format::eR32G32B32Sfloat,
             offsetof(Vertex, color)
+        },
+        vk::VertexInputAttributeDescription {
+            2,
+            0,
+            vk::Format::eR32G32Sfloat,
+            offsetof(Vertex, uv)
         }
     };
 }
 
 std::vector<std::string> OBJLoader::split(
     const std::string& str,
-    const char& delimiter
+    const char delimiter
 ) {
     std::vector<std::string> tokens;
     std::string token;
@@ -44,12 +50,13 @@ std::unique_ptr<std::vector<Vertex>> OBJLoader::load(
     const std::string& path
 ) {
     std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
     std::vector<Vertex> verts;
 
     std::ifstream file { path };
 
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open file!");
+        throw std::runtime_error("ERR 015: Failed to open OBJ file with path: " + path);
     }
 
     for (std::string line; std::getline(file, line);) {
@@ -58,7 +65,7 @@ std::unique_ptr<std::vector<Vertex>> OBJLoader::load(
         if (tokens[0] == "v") {
             vertices.emplace_back(
                 std::stof(tokens[1]),
-                std::stof(tokens[2]),
+                -std::stof(tokens[2]),
                 std::stof(tokens[3])
             );
         } else if (tokens[0] == "f") {
@@ -68,18 +75,26 @@ std::unique_ptr<std::vector<Vertex>> OBJLoader::load(
 
             verts.push_back({
                 vertices[std::stoi(v1[0]) - 1],
-                {1.0f, 1.0f, 1.0f}
+                {1.0f, 1.0f, 1.0f},
+                uvs[std::stoi(v1[1]) - 1]
             });
 
             verts.push_back({
                 vertices[std::stoi(v2[0]) - 1],
-                {1.0f, 1.0f, 1.0f}
+                {1.0f, 1.0f, 1.0f},
+                uvs[std::stoi(v2[1]) - 1]
             });
 
             verts.push_back({
                 vertices[std::stoi(v3[0]) - 1],
-                {1.0f, 1.0f, 1.0f}
+                {1.0f, 1.0f, 1.0f},
+                uvs[std::stoi(v3[1]) - 1]
             });
+        } else if (tokens[0] == "vt") {
+            uvs.emplace_back(
+                std::stof(tokens[1]),
+                1 - std::stof(tokens[2])
+            );
         }
     }
 
@@ -87,14 +102,14 @@ std::unique_ptr<std::vector<Vertex>> OBJLoader::load(
 }
 
 void Mesh::init_buffer(
-    const std::shared_ptr<vk::Device>& device,
-    vk::Queue* graphics_queue,
-    vk::CommandPool* command_pool,
-    vk::PhysicalDevice* p_device
+    const vk::Device device,
+    const vk::Queue graphics_queue,
+    const vk::CommandPool command_pool,
+    const vk::PhysicalDevice p_device
 ) {
     if (buffer_ != nullptr) return;
 
-    buffer_ = new MemoryBuffer<Vertex>(
+    buffer_ = new MemoryBuffer {
         vertices_->size() * sizeof(vertices_->at(0)),
         vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
         vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -102,9 +117,9 @@ void Mesh::init_buffer(
         graphics_queue,
         command_pool,
         p_device
-    );
+    };
 
-    const MemoryBuffer<Vertex> copy_buffer {
+    const MemoryBuffer copy_buffer {
         vertices_->size() * sizeof(vertices_->at(0)),
         vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -114,7 +129,7 @@ void Mesh::init_buffer(
         p_device
     };
 
-    copy_buffer.set(*vertices_, vertices_->size() * sizeof(vertices_->at(0)));
+    copy_buffer.set(vertices_->data(), vertices_->size() * sizeof(vertices_->at(0)));
     buffer_->copy(copy_buffer, vertices_->size() * sizeof(vertices_->at(0)));
 }
 
@@ -128,92 +143,54 @@ void Mesh::render(
 }
 
 void Texture::load(
-    const std::shared_ptr<vk::Device>& device,
-    vk::Queue* graphics_queue,
-    vk::CommandPool* command_pool,
-    vk::PhysicalDevice* p_device
+    const vk::Device device,
+    const vk::Queue graphics_queue,
+    const vk::CommandPool command_pool,
+    const vk::PhysicalDevice p_device,
+    const vk::DescriptorSetLayout& layout,
+    const vk::DescriptorPool& descriptor_pool
 ) {
     if (loaded_) return;
-
-    delete pixel_data_;
 
     device_ = device;
 
     int width, height, channels;
-    stbi_uc* pixels = stbi_load(
+    const stbi_uc* pixels = stbi_load(
         path_.c_str(),
         &width, &height,
         &channels,
         STBI_rgb_alpha
     );
 
-    const vk::DeviceSize image_size = width * height * 4;
-
     if (!pixels) {
         throw std::runtime_error("Failed to load texture image!");
     }
 
-    pixel_data_ = new MemoryBuffer<stbi_uc*>(
-        image_size,
-        vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+    image_.loadImage(
+        pixels,
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height),
         device,
-        graphics_queue,
         command_pool,
+        graphics_queue,
         p_device
     );
-    pixel_data_->set({pixels}, image_size);
 
-    stbi_image_free(pixels);
+    stbi_image_free(const_cast<stbi_uc*>(pixels));
 
-    const vk::ImageCreateInfo image_info {
-        {},
-        vk::ImageType::e2D,
-        vk::Format::eR8G8B8A8Srgb,
-        vk::Extent3D {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height),
-            1
-        },
-        1,
-        1,
-        vk::SampleCountFlagBits::e1,
-        vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-        vk::SharingMode::eExclusive,
-        0,
-        nullptr,
-        vk::ImageLayout::eUndefined
-    };
+    image_.createSampler();
 
-    try {
-        image_ = device->createImage(image_info);
-    } catch (const vk::SystemError& e) {
-        throw std::runtime_error(
-            "ERR 007: Failed to create image! Texture::load(...)"
-            + std::string(e.what())
-        );
-    }
-
-    const vk::MemoryRequirements mem_reqs = device->getImageMemoryRequirements(image_);
-
-    const vk::MemoryAllocateInfo alloc_info {
-        mem_reqs.size,
-        MemoryBuffer<void>::findMemoryType(
-            *p_device,
-            mem_reqs.memoryTypeBits,
-            vk::MemoryPropertyFlagBits::eDeviceLocal
-        )
-    };
-
-    if (
-        device->allocateMemory(&alloc_info, nullptr, &image_memory_)
-        != vk::Result::eSuccess
-    ) {
-        throw std::runtime_error("Failed to allocate image memory!");
-    }
-
-    image_memory_ = device->allocateMemory(alloc_info);
+    image_.updateDescriptor(
+        layout,
+        descriptor_pool
+    );
 
     loaded_ = true;
+}
+
+void Texture::render(
+    const vk::CommandBuffer& command_buffer,
+    const vk::PipelineLayout& pipeline_layout
+) const {
+    image_.render(command_buffer, pipeline_layout);
 }
