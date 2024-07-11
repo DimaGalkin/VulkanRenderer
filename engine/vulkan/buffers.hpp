@@ -13,8 +13,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include <memory>
-
 /**
  * @breif Helper functions to create a vk::CommandBuffer.
  *

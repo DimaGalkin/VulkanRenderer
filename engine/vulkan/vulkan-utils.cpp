@@ -946,7 +946,7 @@ void Vlkn::createDescriptorSets() {
 
 void Vlkn::generateUBO(UniformBufferObject ubo) const {
 
-    const float aspect = extent_.width / static_cast<float>(extent_.height);
+    const float aspect = static_cast<float>(extent_.width) / static_cast<float>(extent_.height);
     static constexpr float fovy = glm::radians(75.0f / 2);
     static constexpr float n = 0.01f;
     static constexpr float f = 10000.0f;

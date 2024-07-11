@@ -154,8 +154,8 @@ class Object {
             const vk::CommandBuffer& command_buffer,
             const vk::PipelineLayout& pipeline_layout
         ) const {
-            mesh_->render(command_buffer);
             tex_->render(command_buffer, pipeline_layout);
+            mesh_->render(command_buffer);
         }
 
         MeshPtr mesh_;

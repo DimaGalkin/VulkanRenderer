@@ -148,7 +148,6 @@ class Vlkn {
 
         size_t current_frame_ = 0;
         int max_f_frames_ = 2;
-        int vertex_count_ = 0;
 
         void submitForDraw(const vk::CommandBuffer& buffer, uint32_t idx);
         void cleanupSwapchain();
