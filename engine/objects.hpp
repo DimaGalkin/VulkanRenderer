@@ -69,6 +69,8 @@ class Mesh {
     private:
         std::string path_;
         bool loaded_ = false;
+
+
 };
 using MeshPtr = std::shared_ptr<Mesh>;
 

@@ -89,8 +89,9 @@ void Vlkn::init() {
     createRenderPass();
     createDescriptorSetLayout();
     createGraphicsPipeline();
-    createFramebuffers();
     createCommandPool();
+    createZBuffer();
+    createFramebuffers();
     createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();
@@ -195,6 +196,10 @@ void Vlkn::cleanupSwapchain() {
     device_.destroyPipeline(graphics_pipeline_);
     device_.destroyPipelineLayout(pipeline_layout_);
     device_.destroyRenderPass(render_pass_);
+
+    device_.destroyImage(z_buffer_);
+    device_.freeMemory(z_buffer_memory_);
+    device_.destroyImageView(z_buffer_view_);
 }
 
 void Vlkn::cleanup() {
@@ -232,6 +237,7 @@ void Vlkn::recreateSwapchain() {
     createImageViews();
     createRenderPass();
     createGraphicsPipeline();
+    createZBuffer();
     createFramebuffers();
     startCommandBuffers();
 }
@@ -392,41 +398,62 @@ void Vlkn::createImageViews() {
 
 void Vlkn::createRenderPass() {
     const vk::AttachmentDescription color {
-                    {},
-                    format_,
-                    vk::SampleCountFlagBits::e1,
-                    vk::AttachmentLoadOp::eClear,
-                    vk::AttachmentStoreOp::eStore,
-                    vk::AttachmentLoadOp::eDontCare,
-                    vk::AttachmentStoreOp::eDontCare,
-                    vk::ImageLayout::eUndefined,
-                    vk::ImageLayout::ePresentSrcKHR
-                };
+        {},
+        format_,
+        vk::SampleCountFlagBits::e1,
+        vk::AttachmentLoadOp::eClear,
+        vk::AttachmentStoreOp::eStore,
+        vk::AttachmentLoadOp::eDontCare,
+        vk::AttachmentStoreOp::eDontCare,
+        vk::ImageLayout::eUndefined,
+        vk::ImageLayout::ePresentSrcKHR
+    };
 
+    static constexpr vk::AttachmentDescription depth {
+        {},
+        vk::Format::eD32Sfloat,
+        vk::SampleCountFlagBits::e1,
+        vk::AttachmentLoadOp::eClear,
+        vk::AttachmentStoreOp::eDontCare,
+        vk::AttachmentLoadOp::eDontCare,
+        vk::AttachmentStoreOp::eDontCare,
+        vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eDepthStencilAttachmentOptimal
+    };
+
+    static constexpr vk::AttachmentReference depth_ref {
+        1,
+        vk::ImageLayout::eDepthStencilAttachmentOptimal
+    };
     static constexpr vk::AttachmentReference color_ref {
         0,
         vk::ImageLayout::eColorAttachmentOptimal
     };
+
     static constexpr vk::SubpassDescription subpass {
-                    {},
-                    vk::PipelineBindPoint::eGraphics,
-                    0, nullptr,
-                    1, &color_ref
-                };
+        {},
+        vk::PipelineBindPoint::eGraphics,
+        0, nullptr,
+        1, &color_ref,
+        nullptr, &depth_ref
+    };
+
+    const std::array<vk::AttachmentDescription, 2> attachments = { color, depth };
+
     static constexpr vk::SubpassDependency dependency {
         VK_SUBPASS_EXTERNAL,
         0,
-        vk::PipelineStageFlagBits::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits::eColorAttachmentOutput,
+        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,
+        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,
         {},
-        vk::AccessFlagBits::eColorAttachmentWrite
+        vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite
     };
 
     try {
         render_pass_ = device_.createRenderPass({
             {},
-            1,
-            &color,
+            attachments.size(),
+            attachments.data(),
             1,
             &subpass,
             1,
@@ -441,13 +468,13 @@ void Vlkn::createFramebuffers() {
     framebuffers_.resize(image_views_.size());
 
     for (size_t i = 0; i < image_views_.size(); i++) {
-        const vk::ImageView attachments[] = { image_views_[i] };
+        const std::array<vk::ImageView, 2> attachments = { image_views_[i], z_buffer_view_ };
 
         vk::FramebufferCreateInfo framebufferInfo = {
             {},
             render_pass_,
-            1,
-            attachments,
+            attachments.size(),
+            attachments.data(),
             extent_.width,
             extent_.height,
             1
@@ -517,7 +544,10 @@ void Vlkn::startCommandBuffers() {
             throw std::runtime_error("ERR 17");
         }
 
-        vk::ClearValue clearColor = { std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f } };
+        std::array<vk::ClearValue, 2> clear_values = {
+            vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}),
+            vk::ClearDepthStencilValue(1.0f, 0)
+        };
 
         const vk::RenderPassBeginInfo pass_info = {
             render_pass_,
@@ -526,8 +556,8 @@ void Vlkn::startCommandBuffers() {
                 {0, 0},
                 extent_
             },
-            1,
-            &clearColor
+            clear_values.size(),
+            clear_values.data()
         };
 
         command_buffers_[i].beginRenderPass(pass_info, vk::SubpassContents::eInline);
@@ -678,6 +708,19 @@ void Vlkn::createGraphicsPipeline() {
         throw std::runtime_error("ERR 9");
     }
 
+    vk::PipelineDepthStencilStateCreateInfo depth_stencil {
+        {},
+        VK_TRUE,
+        VK_TRUE,
+        vk::CompareOp::eLess,
+        VK_FALSE,
+        VK_FALSE,
+        {},
+        {},
+        0.0f,
+        1.0f
+    };
+
     const vk::GraphicsPipelineCreateInfo info {
         {},
         2,
@@ -688,7 +731,7 @@ void Vlkn::createGraphicsPipeline() {
         &viewport_info,
         &rasterizer,
         &multisampling,
-        nullptr,
+        &depth_stencil,
         &blending,
         nullptr,
         pipeline_layout_,
@@ -746,6 +789,74 @@ void Vlkn::createDescriptorSetLayout() {
         ) != vk::Result::eSuccess
     ) throw std::runtime_error("ERR 14");
 }
+
+void Vlkn::createZBuffer() {
+    static constexpr auto format = vk::Format::eD32Sfloat;
+
+    const vk::ImageCreateInfo info {
+        {},
+        vk::ImageType::e2D,
+        format,
+        {extent_.width, extent_.height, 1},
+        1,
+        1,
+        vk::SampleCountFlagBits::e1,
+        vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eDepthStencilAttachment,
+        vk::SharingMode::eExclusive,
+        0, nullptr,
+        vk::ImageLayout::eUndefined
+    };
+
+    try {
+        z_buffer_ = device_.createImage(info);
+    } catch (const vk::SystemError& err) {
+        throw std::runtime_error("ERR 15");
+    }
+
+    const vk::MemoryRequirements reqs = device_.getImageMemoryRequirements(z_buffer_);
+
+    const vk::MemoryAllocateInfo alloc_info {
+        reqs.size,
+        MemoryBuffer::findMemoryType(
+            physical_device_,
+            reqs.memoryTypeBits,
+            vk::MemoryPropertyFlagBits::eDeviceLocal
+        )
+    };
+
+    try {
+        z_buffer_memory_ = device_.allocateMemory(alloc_info);
+    } catch (const vk::SystemError& err) {
+        throw std::runtime_error("ERR 15");
+    }
+
+    device_.bindImageMemory(z_buffer_, z_buffer_memory_, 0);
+
+    const vk::ImageViewCreateInfo view_info {
+        {},
+        z_buffer_,
+        vk::ImageViewType::e2D,
+        format,
+        {},
+        {
+            vk::ImageAspectFlagBits::eDepth,
+            0,
+            1,
+            0,
+            1
+        }
+    };
+
+    try {
+        z_buffer_view_ = device_.createImageView(view_info);
+    } catch (const vk::SystemError& err) {
+        throw std::runtime_error("ERR 15");
+    }
+
+
+}
+
 
 void Vlkn::createUniformBuffers() {
     static constexpr vk::DeviceSize buffer_size = sizeof(UniformBufferObject);

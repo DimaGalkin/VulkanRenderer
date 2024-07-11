@@ -133,6 +133,10 @@ class Vlkn {
         vk::Format format_;
         vk::Extent2D extent_;
 
+        vk::Image z_buffer_;
+        vk::DeviceMemory z_buffer_memory_;
+        vk::ImageView z_buffer_view_;
+
         vk::RenderPass render_pass_;
         vk::Pipeline graphics_pipeline_;
 
@@ -164,6 +168,7 @@ class Vlkn {
         void createSyncObjects();
         void createGraphicsPipeline();
         void createDescriptorSetLayout();
+        void createZBuffer();
         void createUniformBuffers();
         void createDescriptorPool();
         void createDescriptorSets();

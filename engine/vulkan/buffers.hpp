@@ -15,8 +15,6 @@
 
 #include <memory>
 
-#include <iostream>
-
 /**
  * @breif Helper functions to create a vk::CommandBuffer.
  *
