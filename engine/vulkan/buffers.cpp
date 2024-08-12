@@ -39,7 +39,7 @@ void CommandBuffer::end(
         );
     }
 
-    const vk::SubmitInfo submit_info = {
+    const vk::SubmitInfo submit_info {
         0,
         nullptr,
         nullptr,
@@ -54,16 +54,14 @@ void CommandBuffer::end(
 }
 
 Image::Image(
-    const stbi_uc* image,
+    const unsigned char* const image,
     const uint32_t width,
     const uint32_t height,
     const vk::Device device,
     const vk::CommandPool command_pool,
     const vk::Queue graphics_queue,
     const vk::PhysicalDevice p_device
-) : device_ {device},
-    physical_device_ {p_device}
-{
+) {
     loadImage(
         image,
         width,
@@ -77,7 +75,6 @@ Image::Image(
 
 void Image::setImageLayout(
     const vk::Image image,
-    const vk::Format format,
     const vk::ImageLayout old_layout,
     const vk::ImageLayout new_layout,
     const vk::Device device,
@@ -106,6 +103,7 @@ void Image::setImageLayout(
             }
     };
 
+    // auto detect pipeline flags & access masks
     if (
         old_layout == vk::ImageLayout::eUndefined &&
         new_layout == vk::ImageLayout::eTransferDstOptimal
@@ -144,7 +142,7 @@ void Image::setImageLayout(
 }
 
 void Image::loadImage(
-    const stbi_uc* image,
+    const unsigned char* const image,
     const uint32_t width,
     const uint32_t height,
     const vk::Device device,
@@ -155,9 +153,13 @@ void Image::loadImage(
     device_ = device;
     physical_device_ = p_device;
 
+    device_.destroyImage(image_); // destroy image incase it has already been allocated to avoid memory leaks
+
+    // * 4 as there are 4 bytes per pixel (RGBA)
     const vk::DeviceSize image_size = width * height * 4;
 
-    const MemoryBuffer staging_buffer {
+    // buffer to hold image data
+    buffer_ = new MemoryBuffer {
         image_size,
         vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -166,7 +168,7 @@ void Image::loadImage(
         command_pool,
         p_device
     };
-    staging_buffer.set(image, image_size);
+    buffer_->set(image, image_size); // copy raw data to buffer
 
     const vk::ImageCreateInfo image_info {
         {},
@@ -192,7 +194,7 @@ void Image::loadImage(
         image_ = device.createImage(image_info);
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 004: Failed to create image! Texture::load(...)"
+            "ERR 004: Failed to create image! Image::loadImage(...)"
             + std::string(e.what())
         );
     }
@@ -200,7 +202,7 @@ void Image::loadImage(
     const vk::MemoryRequirements mem_reqs = device.getImageMemoryRequirements(image_);
 
     const vk::MemoryAllocateInfo alloc_info {
-        mem_reqs.size,
+        image_size,
         MemoryBuffer::findMemoryType(
             p_device,
             mem_reqs.memoryTypeBits,
@@ -212,7 +214,7 @@ void Image::loadImage(
         device.allocateMemory(&alloc_info, nullptr, &image_memory_)
         != vk::Result::eSuccess
     ) {
-        throw std::runtime_error("ERR 005: Failed to allocate image memory! Texture::load(...)");
+        throw std::runtime_error("ERR 005: Failed to allocate image memory! Image::loadImage(...)");
     }
 
     image_memory_ = device.allocateMemory(alloc_info);
@@ -220,7 +222,6 @@ void Image::loadImage(
 
     setImageLayout(
         image_,
-        vk::Format::eR8G8B8A8Srgb,
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eTransferDstOptimal,
         device,
@@ -228,11 +229,10 @@ void Image::loadImage(
         graphics_queue
     );
 
-    staging_buffer.asImage(image_, width, height);
+    buffer_->asImage(image_, width, height);
 
     setImageLayout(
         image_,
-        vk::Format::eR8G8B8A8Srgb,
         vk::ImageLayout::eTransferDstOptimal,
         vk::ImageLayout::eShaderReadOnlyOptimal,
         device,
@@ -259,24 +259,29 @@ void Image::loadImage(
         image_view_ = device.createImageView(view_info);
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 006: Failed to create image view! Texture::load(...)"
+            "ERR 006: Failed to create image view! Image::loadImage(...)"
             + std::string(e.what())
         );
     }
 }
 
 void Image::createSampler() {
-    vk::SamplerCreateInfo sampler_info {
+    device_.destroySampler(sampler_);
+
+    vk::PhysicalDeviceProperties properties {};
+    physical_device_.getProperties(&properties);
+
+    const vk::SamplerCreateInfo sampler_info {
         {},
         vk::Filter::eLinear,
         vk::Filter::eLinear,
         vk::SamplerMipmapMode::eLinear,
-        vk::SamplerAddressMode::eRepeat,
-        vk::SamplerAddressMode::eRepeat,
-        vk::SamplerAddressMode::eRepeat,
+        vk::SamplerAddressMode::eMirrorClampToEdgeKHR,
+        vk::SamplerAddressMode::eMirrorClampToEdgeKHR,
+        vk::SamplerAddressMode::eMirrorClampToEdgeKHR,
         0.0f,
-        VK_TRUE,
-        16,
+        properties.limits.maxSamplerAnisotropy > 1.0f,
+        properties.limits.maxSamplerAnisotropy,
         VK_FALSE,
         vk::CompareOp::eAlways,
         0.0f,
@@ -285,23 +290,17 @@ void Image::createSampler() {
         VK_FALSE
     };
 
-    vk::PhysicalDeviceProperties properties {};
-    physical_device_.getProperties(&properties);
-
-    sampler_info.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-    sampler_info.anisotropyEnable = properties.limits.maxSamplerAnisotropy > 1.0f;
-
     try {
         sampler_ = device_.createSampler(sampler_info);
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 007: Failed to create sampler! Texture::load(...)"
+            "ERR 007: Failed to create sampler! Image::createSampler(...)"
             + std::string(e.what())
         );
     }
 }
 
-void Image::updateDescriptor(
+void Image::createDescriptor(
     const vk::DescriptorSetLayout layout,
     const vk::DescriptorPool descriptor_pool
 ) {
@@ -315,12 +314,14 @@ void Image::updateDescriptor(
         descriptor_set_ = device_.allocateDescriptorSets(alloc_info)[0];
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 008: Failed to allocate descriptor set! Texture::load(...)"
+            "ERR 008: Failed to allocate descriptor set! Image::createDescriptor(...)"
             + std::string(e.what())
         );
     }
+}
 
-    vk::DescriptorImageInfo image_info {
+void Image::updateDescriptor() const {
+    const vk::DescriptorImageInfo image_info {
         sampler_,
         image_view_,
         vk::ImageLayout::eShaderReadOnlyOptimal
@@ -344,7 +345,7 @@ void Image::updateDescriptor(
         );
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 009: Failed to update descriptor set! Texture::load(...)"
+            "ERR 009: Failed to update descriptor set! Image::updateDescriptor(...)"
             + std::string(e.what())
         );
     }
@@ -365,7 +366,13 @@ void Image::render(
     );
 }
 
+void Image::setDevice(
+    const vk::Device device
+) { device_ = device; }
+
 Image::~Image() {
+    delete buffer_;
+
     try {
         device_.destroyImage(image_);
         device_.freeMemory(image_memory_);
@@ -380,7 +387,7 @@ Image::~Image() {
 }
 
 void MemoryBuffer::set(
-    const void* data,
+    const void* const data,
     const vk::DeviceSize buffer_size
 ) const {
     try {
@@ -400,12 +407,11 @@ void MemoryBuffer::copy(
     const vk::DeviceSize size
 ) const {
     const vk::CommandBuffer command_buffer = CommandBuffer::begin(device_, command_pool_);
-    const vk::BufferCopy regions = {0, 0, size};
 
     command_buffer.copyBuffer(
         source.getBuffer(),
         buffer_,
-        regions
+        vk::BufferCopy {0, 0, size}
     );
 
     CommandBuffer::end(device_, command_buffer, command_pool_, graphics_queue_);
@@ -418,7 +424,7 @@ uint32_t MemoryBuffer::findMemoryType(
 ) {
     const vk::PhysicalDeviceMemoryProperties memory_properties = p_device.getMemoryProperties();
 
-    for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {
+    for (uint32_t i = 0; i < memory_properties.memoryTypeCount; ++i) {
         if (
             (filter & (1 << i)) &&
             (memory_properties.memoryTypes[i].propertyFlags & properties) == properties

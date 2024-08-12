@@ -17,19 +17,16 @@
 
 #include <iostream>
 #include <fstream>
-#include <algorithm>
 #include <vector>
 #include <cstring>
-#include <array>
 #include <memory>
 #include <optional>
-#include <set>
 #include <string>
 
 #include "buffers.hpp"
 #include "../objects.hpp"
 
-inline std::vector DEVICE_EXTENSIONS = {
+inline std::vector DEVICE_EXTENSIONS {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
@@ -62,31 +59,20 @@ struct UniformBufferObject {
 */
 class RendererInfo {
     public:
+        RendererInfo() = delete;
         explicit RendererInfo(GLFWwindow* window) : window_ {window} {};
 
-        // 720p default
-        int width_ = 1280;
-        int height_ = 720;
+        // 1200p default
+        int width_ = 1920;
+        int height_ = 1200;
 
         std::string title_ = "ThreeDL App"; // Default title
 
         GLFWwindow* window_ = nullptr;
 };
 
-class VulkanUtils {
-    public:
-        static std::vector<const char*> getRequiredExtensions();
-        static std::vector<char> readFile(const std::string& filename);
-        static bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device);
-        static vk::SurfaceFormatKHR chooseFormat(const std::vector<vk::SurfaceFormatKHR>& available_formats);
-        static vk::PresentModeKHR chooseMode(const std::vector<vk::PresentModeKHR>& available_modes);
-};
-
 class Vlkn {
     public:
-        RendererInfo info_;
-        bool resized_ = false;
-
         explicit Vlkn(GLFWwindow* window)
             : info_ { window },
               mem_vert_ { nullptr },
@@ -95,7 +81,7 @@ class Vlkn {
 
         void init();
 
-        void add(const ObjectPtr& object) { objects_.push_back(object); }
+        void add(const std::shared_ptr<ObjectInterface>& object) { objects_.push_back(object); }
         void newFrame(const UniformBufferObject& ubo);
 
         ~Vlkn() {
@@ -103,11 +89,14 @@ class Vlkn {
             delete mem_vert_;
         }
 
+        RendererInfo info_;
+        bool resized_ = false;
+
     private:
         MemoryBuffer* mem_vert_;
         std::vector<MemoryBuffer*> uniform_buffers_;
 
-        std::vector<ObjectPtr> objects_;
+        std::vector<std::shared_ptr<ObjectInterface>> objects_;
 
         vk::SurfaceKHR surface_;
         vk::SwapchainKHR swapchain_;
@@ -141,6 +130,7 @@ class Vlkn {
         vk::Pipeline graphics_pipeline_;
 
         vk::DescriptorSetLayout ubo_layout_;
+        vk::DescriptorSetLayout model_layout_;
         vk::DescriptorSetLayout texture_layout_;
         vk::PipelineLayout pipeline_layout_;
 
@@ -171,7 +161,13 @@ class Vlkn {
         void createUniformBuffers();
         void createDescriptorPool();
         void createDescriptorSets();
-        void generateUBO(UniformBufferObject ubo) const;
+        void regenUBOs(const UniformBufferObject& ubo) const;
+
+        static std::vector<const char*> getRequiredExtensions();
+        static std::vector<char> readFile(const std::string& filename);
+        static bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device);
+        static vk::SurfaceFormatKHR chooseFormat(const std::vector<vk::SurfaceFormatKHR>& available_formats);
+        static vk::PresentModeKHR chooseMode(const std::vector<vk::PresentModeKHR>& available_modes);
 
         [[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::vector<char>& code) const;
         [[nodiscard]] vk::Extent2D chooseExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const;

@@ -1,6 +1,8 @@
 #include "vulkan-utils.hpp"
 
-std::vector<const char*> VulkanUtils::getRequiredExtensions() {
+#include <set>
+
+std::vector<const char*> Vlkn::getRequiredExtensions() {
     uint32_t glfwExtensionCount = 0;
     const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
@@ -10,7 +12,7 @@ std::vector<const char*> VulkanUtils::getRequiredExtensions() {
     };
 }
 
-std::vector<char> VulkanUtils::readFile(
+std::vector<char> Vlkn::readFile(
     const std::string& filename
 ) {
     std::ifstream file { filename, std::ios::ate | std::ios::binary };
@@ -28,7 +30,7 @@ std::vector<char> VulkanUtils::readFile(
     return buffer;
 }
 
-bool VulkanUtils::checkDeviceExtensionSupport(
+bool Vlkn::checkDeviceExtensionSupport(
     const vk::PhysicalDevice& device
 ) {
     std::set<std::string> required {
@@ -43,7 +45,7 @@ bool VulkanUtils::checkDeviceExtensionSupport(
     return required.empty();
 }
 
-vk::SurfaceFormatKHR VulkanUtils::chooseFormat(
+vk::SurfaceFormatKHR Vlkn::chooseFormat(
     const std::vector<vk::SurfaceFormatKHR>& available_formats
 ) {
     if (
@@ -61,7 +63,7 @@ vk::SurfaceFormatKHR VulkanUtils::chooseFormat(
     return available_formats[0];
 }
 
-vk::PresentModeKHR VulkanUtils::chooseMode(
+vk::PresentModeKHR Vlkn::chooseMode(
     const std::vector<vk::PresentModeKHR>& available_modes
 ) {
     auto best = vk::PresentModeKHR::eFifo;
@@ -103,7 +105,7 @@ void Vlkn::init() {
 void Vlkn::newFrame(
     const UniformBufferObject& ubo
 ) {
-    generateUBO(ubo);
+    regenUBOs(ubo);
 
     if (
         device_.waitForFences(
@@ -207,6 +209,7 @@ void Vlkn::cleanup() {
 
     device_.destroyCommandPool(command_pool_);
     device_.destroyDescriptorSetLayout(ubo_layout_);
+    device_.destroyDescriptorSetLayout(model_layout_);
     device_.destroyDescriptorPool(descriptor_pool_);
 
     for (size_t i = 0; i < max_f_frames_; ++i) {
@@ -251,7 +254,7 @@ void Vlkn::createInstance() {
         VK_API_VERSION_1_0
     };
 
-    const std::vector<const char*> extensions = VulkanUtils::getRequiredExtensions();
+    const std::vector<const char*> extensions = getRequiredExtensions();
     const vk::InstanceCreateInfo instance_info = {
         {},
         &application_info,
@@ -278,6 +281,9 @@ void Vlkn::createSurface() {
 void Vlkn::pickPhysicalDevice() {
     std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
     if (devices.empty()) throw std::runtime_error("ERR 3");
+
+    physical_device_ = devices[1];
+    return;
 
     for (const auto& device : devices) {
         if (isDeviceSuitable(device)) { physical_device_ = device; break; }
@@ -307,8 +313,7 @@ void Vlkn::createLogicalDevice() {
 
     try {
         device_ = physical_device_.createDevice(device_info);
-    }
-    catch (const vk::SystemError& err) {
+    } catch (const vk::SystemError& err) {
         throw std::runtime_error("ERR 5");
     }
 
@@ -322,8 +327,8 @@ void Vlkn::createSwapchain() {
         physical_device_.getSurfaceFormatsKHR(surface_),
         physical_device_.getSurfacePresentModesKHR(surface_)
     };
-    const vk::SurfaceFormatKHR surfaceFormat = VulkanUtils::chooseFormat(sc_support.formats);
-    const vk::PresentModeKHR presentMode = VulkanUtils::chooseMode(sc_support.presentModes);
+    const vk::SurfaceFormatKHR surfaceFormat = chooseFormat(sc_support.formats);
+    const vk::PresentModeKHR presentMode = chooseMode(sc_support.presentModes);
     const vk::Extent2D extent = chooseExtent(sc_support.capabilities);
 
     uint32_t imageCount = sc_support.capabilities.minImageCount + 1;
@@ -353,11 +358,12 @@ void Vlkn::createSwapchain() {
     } else {
         info.imageSharingMode = vk::SharingMode::eExclusive;
     }
+
     info.presentMode = presentMode;
     info.clipped = VK_TRUE;
     info.preTransform = sc_support.capabilities.currentTransform;
     info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-    info.oldSwapchain = vk::SwapchainKHR {nullptr};
+    info.oldSwapchain = vk::SwapchainKHR { nullptr };
 
     try {
         swapchain_ = device_.createSwapchainKHR(info);
@@ -373,7 +379,7 @@ void Vlkn::createSwapchain() {
 void Vlkn::createImageViews() {
     image_views_.resize(images_.size());
 
-    for (size_t i = 0; i < images_.size(); i++) {
+    for (size_t i = 0; i < images_.size(); ++i) {
         try {
             image_views_[i] = device_.createImageView({
                     {},
@@ -467,7 +473,7 @@ void Vlkn::createRenderPass() {
 void Vlkn::createFramebuffers() {
     framebuffers_.resize(image_views_.size());
 
-    for (size_t i = 0; i < image_views_.size(); i++) {
+    for (size_t i = 0; i < image_views_.size(); ++i) {
         const std::array<vk::ImageView, 2> attachments = { image_views_[i], z_buffer_view_ };
 
         vk::FramebufferCreateInfo framebufferInfo = {
@@ -514,9 +520,18 @@ void Vlkn::loadModels() {
             texture_layout_,
             descriptor_pool_
         );
+
+        object->initUBOs(
+            max_f_frames_,
+            device_,
+            graphics_queue_,
+            command_pool_,
+            physical_device_
+        );
+
+        object->createDescriptorSets(max_f_frames_, descriptor_pool_, device_, model_layout_);
     }
 }
-
 
 void Vlkn::startCommandBuffers() {
     command_buffers_.resize(framebuffers_.size());
@@ -533,7 +548,7 @@ void Vlkn::startCommandBuffers() {
         throw std::runtime_error("ERR 16");
     }
 
-    for (size_t i = 0; i < command_buffers_.size(); i++) {
+    for (size_t i = 0; i < command_buffers_.size(); ++i) {
         static constexpr vk::CommandBufferBeginInfo begin_info {
             vk::CommandBufferUsageFlagBits::eSimultaneousUse
         };
@@ -544,7 +559,7 @@ void Vlkn::startCommandBuffers() {
             throw std::runtime_error("ERR 17");
         }
 
-        std::array<vk::ClearValue, 2> clear_values = {
+        std::array<vk::ClearValue, 2> clear_values {
             vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}),
             vk::ClearDepthStencilValue(1.0f, 0)
         };
@@ -565,7 +580,7 @@ void Vlkn::startCommandBuffers() {
         command_buffers_[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout_, 0, 1, &descriptor_sets_[current_frame_], 0, nullptr);
 
         for (const auto& object : objects_) {
-            object->render(command_buffers_[i], pipeline_layout_);
+            object->render(command_buffers_[i], pipeline_layout_, current_frame_);
         }
 
         command_buffers_[i].endRenderPass();
@@ -584,7 +599,7 @@ void Vlkn::createSyncObjects() {
     fences_.resize(max_f_frames_);
 
     try {
-        for (size_t i = 0; i < max_f_frames_; i++) {
+        for (size_t i = 0; i < max_f_frames_; ++i) {
             fences_[i] = device_.createFence({vk::FenceCreateFlagBits::eSignaled});
             image_available_[i] = device_.createSemaphore({});
             render_finished_[i] = device_.createSemaphore({});
@@ -595,8 +610,8 @@ void Vlkn::createSyncObjects() {
 }
 
 void Vlkn::createGraphicsPipeline() {
-    const vk::UniqueShaderModule vert = createShaderModule(VulkanUtils::readFile("../shaders/vert.spv"));
-    const vk::UniqueShaderModule frag = createShaderModule(VulkanUtils::readFile("../shaders/frag.spv"));
+    const vk::UniqueShaderModule vert = createShaderModule(readFile("../shaders/vert.spv"));
+    const vk::UniqueShaderModule frag = createShaderModule(readFile("../shaders/frag.spv"));
 
     const vk::PipelineShaderStageCreateInfo stages[] = {
         {
@@ -642,7 +657,7 @@ void Vlkn::createGraphicsPipeline() {
         extent_
     };
 
-    vk::PipelineViewportStateCreateInfo viewport_info = {
+    vk::PipelineViewportStateCreateInfo viewport_info {
         {},
         1,
         &viewport,
@@ -682,10 +697,15 @@ void Vlkn::createGraphicsPipeline() {
         vk::BlendFactor::eOne,
         vk::BlendFactor::eZero,
         vk::BlendOp::eAdd,
-        vk::ColorComponentFlags(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA)
+        vk::ColorComponentFlags(
+            vk::ColorComponentFlagBits::eR |
+            vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB |
+            vk::ColorComponentFlagBits::eA
+        )
     };
 
-    static constexpr vk::PipelineColorBlendStateCreateInfo blending = {
+    static constexpr vk::PipelineColorBlendStateCreateInfo blending {
         {},
         VK_FALSE,
         vk::LogicOp::eCopy,
@@ -694,11 +714,11 @@ void Vlkn::createGraphicsPipeline() {
         {0.0f, 0.0f, 0.0f, 0.0f}
     };
 
-    vk::DescriptorSetLayout layouts[] = { ubo_layout_, texture_layout_ };
+    const vk::DescriptorSetLayout layouts[] = { ubo_layout_, texture_layout_, model_layout_ };
 
-    const vk::PipelineLayoutCreateInfo pipe_info = {
+    const vk::PipelineLayoutCreateInfo pipe_info {
         {},
-        2,
+        std::size(layouts),
         layouts
     };
 
@@ -708,7 +728,7 @@ void Vlkn::createGraphicsPipeline() {
         throw std::runtime_error("ERR 9");
     }
 
-    vk::PipelineDepthStencilStateCreateInfo depth_stencil {
+    static constexpr vk::PipelineDepthStencilStateCreateInfo depth_stencil {
         {},
         VK_TRUE,
         VK_TRUE,
@@ -757,7 +777,15 @@ void Vlkn::createDescriptorSetLayout() {
         nullptr
     };
 
-    vk::DescriptorSetLayoutBinding texture_binding {
+    static constexpr vk::DescriptorSetLayoutBinding model_binding {
+        1,
+        vk::DescriptorType::eUniformBuffer,
+        1,
+        vk::ShaderStageFlagBits::eVertex,
+        nullptr
+    };
+
+    static constexpr vk::DescriptorSetLayoutBinding texture_binding {
         0,
         vk::DescriptorType::eCombinedImageSampler,
         1,
@@ -765,7 +793,7 @@ void Vlkn::createDescriptorSetLayout() {
         nullptr
     };
 
-    vk::DescriptorSetLayoutCreateInfo layout_info = {
+    vk::DescriptorSetLayoutCreateInfo layout_info {
         {},
         1,
         &ubo_binding
@@ -776,6 +804,16 @@ void Vlkn::createDescriptorSetLayout() {
             &layout_info,
             nullptr,
             &ubo_layout_
+        ) != vk::Result::eSuccess
+    ) throw std::runtime_error("ERR 14");
+
+    layout_info.pBindings = &model_binding;
+
+    if (
+        device_.createDescriptorSetLayout(
+            &layout_info,
+            nullptr,
+            &model_layout_
         ) != vk::Result::eSuccess
     ) throw std::runtime_error("ERR 14");
 
@@ -853,8 +891,6 @@ void Vlkn::createZBuffer() {
     } catch (const vk::SystemError& err) {
         throw std::runtime_error("ERR 15");
     }
-
-
 }
 
 
@@ -871,13 +907,13 @@ void Vlkn::createUniformBuffers() {
             device_,
             graphics_queue_,
             command_pool_,
-             physical_device_
+            physical_device_
         );
     }
 }
 
 void Vlkn::createDescriptorPool() {
-    const vk::DescriptorPoolSize pool_sizes[] = {
+    const vk::DescriptorPoolSize pool_sizes[] {
         {
             vk::DescriptorType::eUniformBuffer,
             static_cast<uint32_t>(max_f_frames_)
@@ -888,9 +924,13 @@ void Vlkn::createDescriptorPool() {
         }
     };
 
-    const vk::DescriptorPoolCreateInfo pool_info = {
+    const vk::DescriptorPoolCreateInfo pool_info {
         {vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet},
-        static_cast<uint32_t>(max_f_frames_ + objects_.size()),
+        static_cast<uint32_t>(
+            max_f_frames_ // Global UBO
+            + objects_.size() // Texture & Model
+            + (objects_.size() * max_f_frames_) // Model UBO
+        ),
         static_cast<uint32_t>(std::size(pool_sizes)),
         pool_sizes
     };
@@ -907,7 +947,7 @@ void Vlkn::createDescriptorPool() {
 void Vlkn::createDescriptorSets() {
     std::vector<vk::DescriptorSetLayout> layouts (max_f_frames_, ubo_layout_);
 
-    const vk::DescriptorSetAllocateInfo alloc_info = {
+    const vk::DescriptorSetAllocateInfo alloc_info {
         descriptor_pool_,
         static_cast<uint32_t>(max_f_frames_),
         layouts.data()
@@ -920,9 +960,9 @@ void Vlkn::createDescriptorSets() {
             &alloc_info,
             descriptor_sets_.data()
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 14");
+    ) throw std::runtime_error("ERR 14 ");
 
-    for (size_t i = 0; i < max_f_frames_; i++) {
+    for (size_t i = 0; i < max_f_frames_; ++i) {
         vk::DescriptorBufferInfo buffer_info = {
             uniform_buffers_[i]->getBuffer(),
             0,
@@ -944,20 +984,21 @@ void Vlkn::createDescriptorSets() {
     }
 }
 
-void Vlkn::generateUBO(UniformBufferObject ubo) const {
-
-    const float aspect = static_cast<float>(extent_.width) / static_cast<float>(extent_.height);
-    static constexpr float fovy = glm::radians(75.0f / 2);
-    static constexpr float n = 0.01f;
-    static constexpr float f = 10000.0f;
-
-    ubo.proj = glm::perspective(fovy, aspect, n, f);
-
+void Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
     uniform_buffers_[current_frame_]->set(&ubo, sizeof(ubo));
+
+    for (const auto& object : objects_) {
+        object->imageTick();
+
+        if(object->has_changed_) {
+            object->ubos_[current_frame_]->set(&object->ubo_data_, sizeof(object->ubo_data_));
+            object->has_changed_ = false;
+        }
+    }
 }
 
 [[nodiscard]] vk::UniqueShaderModule Vlkn::createShaderModule(
-    const std::vector<char> &code
+    const std::vector<char>& code
 ) const {
     try {
         return device_.createShaderModuleUnique({
@@ -1006,7 +1047,7 @@ void Vlkn::generateUBO(UniformBufferObject ubo) const {
 
 [[nodiscard]] bool Vlkn::isDeviceSuitable(const vk::PhysicalDevice& device) const {
     const auto [graphics, present] = findQueueFamilies(device);
-    const bool supported_extensions = VulkanUtils::checkDeviceExtensionSupport(device);
+    const bool supported_extensions = checkDeviceExtensionSupport(device);
     bool swapChainAdequate = false;
 
     if (supported_extensions) {

@@ -3,6 +3,9 @@ project(ThreeDL)
 
 set(CMAKE_CXX_STANDARD 20)
 
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+
 add_executable(ThreeDL main.cpp
         engine/vulkan/vulkan-utils.hpp
         engine/threedl.cpp
@@ -11,7 +14,11 @@ add_executable(ThreeDL main.cpp
         engine/objects.hpp
         engine/objects.cpp
         engine/vulkan/vulkan-utils.cpp
-        engine/vulkan/buffers.cpp)
+        engine/vulkan/buffers.cpp
+        engine/camera.cpp
+        engine/camera.hpp
+        engine/types.hpp)
 
+target_link_libraries( ThreeDL ${OpenCV_LIBS} )
 target_link_libraries(ThreeDL glfw)
 target_link_libraries(ThreeDL vulkan)
