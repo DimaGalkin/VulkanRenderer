@@ -399,32 +399,12 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: \
  /usr/include/c++/13/bits/this_thread_sleep.h \
  /usr/include/x86_64-linux-gnu/sys/time.h /usr/include/semaphore.h \
  /usr/include/x86_64-linux-gnu/bits/semaphore.h \
- /home/dima/Projects/ThreeDL/engine/types.hpp \
- /home/dima/Projects/ThreeDL/engine/objects.hpp \
- /usr/include/vulkan/vulkan.hpp /usr/include/vulkan/vulkan.h \
- /usr/include/vulkan/vk_platform.h /usr/include/vulkan/vulkan_core.h \
- /usr/include/vk_video/vulkan_video_codec_h264std.h \
- /usr/include/vk_video/vulkan_video_codecs_common.h \
- /usr/include/vk_video/vulkan_video_codec_h264std_encode.h \
- /usr/include/vk_video/vulkan_video_codec_h264std.h \
- /usr/include/vk_video/vulkan_video_codec_h265std.h \
- /usr/include/vk_video/vulkan_video_codec_h265std_encode.h \
- /usr/include/vk_video/vulkan_video_codec_h265std.h \
- /usr/include/vk_video/vulkan_video_codec_h264std_decode.h \
- /usr/include/vk_video/vulkan_video_codec_h265std_decode.h \
- /usr/include/vulkan/vulkan_hpp_macros.hpp /usr/include/c++/13/version \
- /usr/include/c++/13/cassert /usr/include/dlfcn.h \
- /usr/include/x86_64-linux-gnu/bits/dlfcn.h \
- /usr/include/x86_64-linux-gnu/bits/dl_find_object.h \
- /usr/include/vulkan/vulkan_enums.hpp \
- /usr/include/vulkan/vulkan_to_string.hpp \
- /usr/include/vulkan/vulkan_handles.hpp \
- /usr/include/vulkan/vulkan_structs.hpp \
- /usr/include/vulkan/vulkan_funcs.hpp /usr/include/glm/glm.hpp \
+ /home/dima/Projects/ThreeDL/engine/camera.hpp /usr/include/glm/glm.hpp \
  /usr/include/glm/detail/_fixes.hpp /usr/include/glm/detail/setup.hpp \
- /usr/include/glm/simd/platform.h /usr/include/glm/fwd.hpp \
- /usr/include/glm/detail/qualifier.hpp /usr/include/glm/detail/setup.hpp \
- /usr/include/glm/vec2.hpp /usr/include/glm/ext/vector_bool2.hpp \
+ /usr/include/c++/13/cassert /usr/include/glm/simd/platform.h \
+ /usr/include/glm/fwd.hpp /usr/include/glm/detail/qualifier.hpp \
+ /usr/include/glm/detail/setup.hpp /usr/include/glm/vec2.hpp \
+ /usr/include/glm/ext/vector_bool2.hpp \
  /usr/include/glm/detail/type_vec2.hpp \
  /usr/include/glm/detail/type_vec2.inl \
  /usr/include/glm/detail/compute_vector_relational.hpp \
@@ -533,28 +513,46 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: \
  /usr/include/glm/detail/type_half.hpp \
  /usr/include/glm/detail/type_half.inl /usr/include/glm/integer.hpp \
  /usr/include/glm/detail/func_integer.inl \
- /usr/include/glm/gtc/matrix_transform.hpp \
- /usr/include/glm/ext/matrix_projection.hpp \
- /usr/include/glm/gtc/constants.hpp \
+ /usr/include/glm/ext/matrix_clip_space.hpp \
  /usr/include/glm/ext/scalar_constants.hpp \
  /usr/include/glm/ext/scalar_constants.inl \
- /usr/include/glm/gtc/constants.inl \
- /usr/include/glm/ext/matrix_projection.inl \
- /usr/include/glm/ext/matrix_clip_space.hpp \
  /usr/include/glm/ext/matrix_clip_space.inl \
+ /home/dima/Projects/ThreeDL/engine/types.hpp \
+ /home/dima/Projects/ThreeDL/engine/vulkan/vulkan-utils.hpp \
+ /usr/include/vulkan/vulkan.hpp /usr/include/vulkan/vulkan.h \
+ /usr/include/vulkan/vk_platform.h /usr/include/vulkan/vulkan_core.h \
+ /usr/include/vk_video/vulkan_video_codec_h264std.h \
+ /usr/include/vk_video/vulkan_video_codecs_common.h \
+ /usr/include/vk_video/vulkan_video_codec_h264std_encode.h \
+ /usr/include/vk_video/vulkan_video_codec_h264std.h \
+ /usr/include/vk_video/vulkan_video_codec_h265std.h \
+ /usr/include/vk_video/vulkan_video_codec_h265std_encode.h \
+ /usr/include/vk_video/vulkan_video_codec_h265std.h \
+ /usr/include/vk_video/vulkan_video_codec_h264std_decode.h \
+ /usr/include/vk_video/vulkan_video_codec_h265std_decode.h \
+ /usr/include/vulkan/vulkan_hpp_macros.hpp /usr/include/c++/13/version \
+ /usr/include/dlfcn.h /usr/include/x86_64-linux-gnu/bits/dlfcn.h \
+ /usr/include/x86_64-linux-gnu/bits/dl_find_object.h \
+ /usr/include/vulkan/vulkan_enums.hpp \
+ /usr/include/vulkan/vulkan_to_string.hpp \
+ /usr/include/vulkan/vulkan_handles.hpp \
+ /usr/include/vulkan/vulkan_structs.hpp \
+ /usr/include/vulkan/vulkan_funcs.hpp /usr/include/GLFW/glfw3.h \
+ /usr/include/GL/gl.h /usr/include/GL/glext.h \
+ /usr/include/KHR/khrplatform.h /usr/include/glm/gtc/matrix_transform.hpp \
+ /usr/include/glm/ext/matrix_projection.hpp \
+ /usr/include/glm/gtc/constants.hpp /usr/include/glm/gtc/constants.inl \
+ /usr/include/glm/ext/matrix_projection.inl \
  /usr/include/glm/ext/matrix_transform.hpp \
  /usr/include/glm/ext/matrix_transform.inl \
- /usr/include/glm/gtc/matrix_transform.inl \
- /usr/local/include/opencv4/opencv2/videoio.hpp \
- /usr/local/include/opencv4/opencv2/core/mat.hpp \
- /usr/local/include/opencv4/opencv2/core/ocl.hpp \
- /usr/include/c++/13/typeindex /usr/include/stb/stb_image.h \
- /usr/include/c++/13/fstream \
+ /usr/include/glm/gtc/matrix_transform.inl /usr/include/c++/13/fstream \
  /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h \
  /usr/include/c++/13/bits/fstream.tcc \
  /home/dima/Projects/ThreeDL/engine/vulkan/buffers.hpp \
- /home/dima/Projects/ThreeDL/engine/camera.hpp /usr/include/GLFW/glfw3.h \
- /usr/include/GL/gl.h /usr/include/GL/glext.h \
- /usr/include/KHR/khrplatform.h \
- /home/dima/Projects/ThreeDL/engine/vulkan/vulkan-utils.hpp
+ /home/dima/Projects/ThreeDL/engine/vulkan/../objects.hpp \
+ /usr/local/include/opencv4/opencv2/videoio.hpp \
+ /usr/local/include/opencv4/opencv2/core/mat.hpp \
+ /usr/local/include/opencv4/opencv2/core/ocl.hpp \
+ /usr/include/c++/13/typeindex /usr/include/c++/13/ranges \
+ /usr/include/c++/13/iterator /usr/include/c++/13/bits/stream_iterator.h

@@ -441,10 +441,8 @@ CMakeFiles/ThreeDL.dir/engine/vulkan/vulkan-utils.cpp.o: \
  /usr/local/include/opencv4/opencv2/core/cvdef.h \
  /usr/local/include/opencv4/opencv2/core/mat.hpp \
  /usr/local/include/opencv4/opencv2/core/ocl.hpp \
- /usr/include/c++/13/typeindex /usr/include/stb/stb_image.h \
- /usr/include/c++/13/math.h \
- /usr/local/include/opencv4/opencv2/imgproc.hpp \
- /usr/local/include/opencv4/opencv2/imgproc/segmentation.hpp \
+ /usr/include/c++/13/typeindex /usr/include/c++/13/ranges \
+ /usr/include/c++/13/iterator /usr/include/c++/13/bits/stream_iterator.h \
  /home/dima/Projects/ThreeDL/engine/vulkan/../types.hpp \
  /usr/include/c++/13/set /usr/include/c++/13/bits/stl_tree.h \
  /usr/include/c++/13/bits/stl_set.h \

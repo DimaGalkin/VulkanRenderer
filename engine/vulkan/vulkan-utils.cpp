@@ -2,7 +2,7 @@
 
 #include <set>
 
-std::vector<const char*> Vlkn::getRequiredExtensions() {
+std::vector<const char*> tdl::Vlkn::getRequiredExtensions() {
     uint32_t glfwExtensionCount = 0;
     const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
@@ -12,7 +12,7 @@ std::vector<const char*> Vlkn::getRequiredExtensions() {
     };
 }
 
-std::vector<char> Vlkn::readFile(
+std::vector<char> tdl::Vlkn::readFile(
     const std::string& filename
 ) {
     std::ifstream file { filename, std::ios::ate | std::ios::binary };
@@ -30,7 +30,7 @@ std::vector<char> Vlkn::readFile(
     return buffer;
 }
 
-bool Vlkn::checkDeviceExtensionSupport(
+bool tdl::Vlkn::checkDeviceExtensionSupport(
     const vk::PhysicalDevice& device
 ) {
     std::set<std::string> required {
@@ -45,7 +45,7 @@ bool Vlkn::checkDeviceExtensionSupport(
     return required.empty();
 }
 
-vk::SurfaceFormatKHR Vlkn::chooseFormat(
+vk::SurfaceFormatKHR tdl::Vlkn::chooseFormat(
     const std::vector<vk::SurfaceFormatKHR>& available_formats
 ) {
     if (
@@ -63,7 +63,7 @@ vk::SurfaceFormatKHR Vlkn::chooseFormat(
     return available_formats[0];
 }
 
-vk::PresentModeKHR Vlkn::chooseMode(
+vk::PresentModeKHR tdl::Vlkn::chooseMode(
     const std::vector<vk::PresentModeKHR>& available_modes
 ) {
     auto best = vk::PresentModeKHR::eFifo;
@@ -81,7 +81,7 @@ vk::PresentModeKHR Vlkn::chooseMode(
     return best;
 }
 
-void Vlkn::init() {
+void tdl::Vlkn::init() {
     createInstance();
     createSurface();
     pickPhysicalDevice();
@@ -102,17 +102,15 @@ void Vlkn::init() {
     createSyncObjects();
 };
 
-void Vlkn::newFrame(
+void tdl::Vlkn::newFrame(
     const UniformBufferObject& ubo
 ) {
-    regenUBOs(ubo);
-
     if (
         device_.waitForFences(
             1, &fences_[current_frame_],
             VK_TRUE, std::numeric_limits<uint64_t>::max()
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 20");
+    ) throw std::runtime_error("ERR 30: Failed to wait for fences. Vlkn::newFrame(...)");
 
     uint32_t idx;
     try {
@@ -122,12 +120,17 @@ void Vlkn::newFrame(
             image_available_[current_frame_], nullptr
         );
         idx = result.value;
-    } catch (const vk::OutOfDateKHRError& err) {
+    } catch (const vk::OutOfDateKHRError& _) {
         recreateSwapchain();
         return;
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 21");
+        throw std::runtime_error(
+            "ERR 031: aquireImageKHR failed. Vlkn::newFrame(...)\n"
+            + std::string(err.what())
+        );
     }
+
+    regenUBOs(ubo);
 
     submitForDraw(command_buffers_[idx], idx);
 
@@ -142,10 +145,13 @@ void Vlkn::newFrame(
     vk::Result r_present;
     try {
         r_present = present_queue_.presentKHR(present_info);
-    } catch (const vk::OutOfDateKHRError& err) {
+    } catch (const vk::OutOfDateKHRError& _) {
         r_present = vk::Result::eErrorOutOfDateKHR;
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 24");
+        throw std::runtime_error(
+            "ERR 032: Failed to get presentKHR. Vlkn::newImage(...)\n"
+            + std::string(err.what())
+        );
     }
 
     if (r_present == vk::Result::eSuboptimalKHR || resized_) {
@@ -157,7 +163,7 @@ void Vlkn::newFrame(
     current_frame_ = (current_frame_ + 1) % max_f_frames_;
 }
 
-void Vlkn::submitForDraw(
+void tdl::Vlkn::submitForDraw(
     const vk::CommandBuffer& buffer,
     const uint32_t idx
 ) {
@@ -177,23 +183,26 @@ void Vlkn::submitForDraw(
             1,
             &fences_[current_frame_]
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 22");
+        ) throw std::runtime_error("ERR 033: Failed to reset fences. Vlkn::submitForDraw(...)");
 
     try {
         graphics_queue_.submit(submit_info, fences_[current_frame_]);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 23");
+        throw std::runtime_error(
+            "ERR 034: Failed to submit command buffer for rendering. Vlkn::submitForDraw(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
-void Vlkn::cleanupSwapchain() {
+void tdl::Vlkn::cleanupSwapchain() {
     for (const auto& framebuffer : framebuffers_) device_.destroyFramebuffer(framebuffer);
     for (const auto& image_view : image_views_) device_.destroyImageView(image_view);
 
     device_.destroySwapchainKHR(swapchain_);
 
-    for (const auto& group : command_buffers_)
-        device_.freeCommandBuffers(command_pool_, group);
+    // for (const auto& group : command_buffers_)
+    //     device_.freeCommandBuffers(command_pool_, group);
 
     device_.destroyPipeline(graphics_pipeline_);
     device_.destroyPipelineLayout(pipeline_layout_);
@@ -204,13 +213,21 @@ void Vlkn::cleanupSwapchain() {
     device_.destroyImageView(z_buffer_view_);
 }
 
-void Vlkn::cleanup() {
+void tdl::Vlkn::cleanup() {
     cleanupSwapchain();
 
     device_.destroyCommandPool(command_pool_);
     device_.destroyDescriptorSetLayout(ubo_layout_);
+    device_.destroyDescriptorSetLayout(object_layout_);
     device_.destroyDescriptorSetLayout(model_layout_);
     device_.destroyDescriptorPool(descriptor_pool_);
+
+    for (const auto& group : command_buffers_)
+        device_.freeCommandBuffers(command_pool_, group);
+
+        device_.destroyPipeline(graphics_pipeline_);
+        device_.destroyPipelineLayout(pipeline_layout_);
+        device_.destroyRenderPass(render_pass_);
 
     for (size_t i = 0; i < max_f_frames_; ++i) {
         device_.destroyFence(fences_[i]);
@@ -222,32 +239,33 @@ void Vlkn::cleanup() {
 
     instance_->destroySurfaceKHR(surface_);
 
-    glfwDestroyWindow(info_.window_);
+    glfwDestroyWindow(info_->window_);
     glfwTerminate();
 }
 
-void Vlkn::recreateSwapchain() {
-    info_.width_ = 0; info_.height_ = 0;
-    while (info_.width_ == 0 || info_.height_ == 0) {
-        glfwGetFramebufferSize(info_.window_, &info_.width_, &info_.height_);
+void tdl::Vlkn::recreateSwapchain() {
+    int width = 0; int height = 0;
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(info_->window_, &width, &height);
         glfwWaitEvents();
     }
 
     device_.waitIdle();
 
     cleanupSwapchain();
+
     createSwapchain();
     createImageViews();
+    createZBuffer();
     createRenderPass();
     createGraphicsPipeline();
-    createZBuffer();
     createFramebuffers();
     startCommandBuffers();
 }
 
-void Vlkn::createInstance() {
+void tdl::Vlkn::createInstance() {
     const vk::ApplicationInfo application_info = {
-        info_.title_.c_str(),
+        info_->title_.c_str(),
         VK_MAKE_VERSION(0, 0, 0),
         "ThreeDL Engine",
         VK_MAKE_VERSION(0, 0, 0),
@@ -265,33 +283,35 @@ void Vlkn::createInstance() {
     try {
         instance_ = vk::createInstanceUnique(instance_info, nullptr);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 1");
+        throw std::runtime_error(
+            "ERR 035: Failed to create vk::Instance. Vlkn::createInstance(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
-void Vlkn::createSurface() {
+void tdl::Vlkn::createSurface() {
     VkSurfaceKHR surface;
-    if (glfwCreateWindowSurface(instance_.get(), info_.window_, nullptr, &surface) != VK_SUCCESS) {
-        throw std::runtime_error("ERR 2");
+    if (glfwCreateWindowSurface(instance_.get(), info_->window_, nullptr, &surface) != VK_SUCCESS) {
+        throw std::runtime_error("ERR 036: Failed to create window surface. Vlkn::createSurface(...)");
     }
 
     surface_ = surface;
 }
 
-void Vlkn::pickPhysicalDevice() {
-    std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
-    if (devices.empty()) throw std::runtime_error("ERR 3");
+void tdl::Vlkn::pickPhysicalDevice() {
+    const std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
+    if (devices.empty()) throw std::runtime_error("ERR 037: No devices found! Vlkn::pickPhysicalDevice(...)");
 
     physical_device_ = devices[1];
-    return;
 
-    for (const auto& device : devices) {
-        if (isDeviceSuitable(device)) { physical_device_ = device; break; }
-    }
-    if (!physical_device_) throw std::runtime_error("ERR 4");
+    // for (const auto& device : devices) {
+    //     if (isDeviceSuitable(device)) { physical_device_ = device; break; }
+    // }
+    // if (!physical_device_) throw std::runtime_error("ERR 038: No suitable devices found! Vlkn::pickPhysicalDevice(...)");
 }
 
-void Vlkn::createLogicalDevice() {
+void tdl::Vlkn::createLogicalDevice() {
     const auto [graphics, present] = findQueueFamilies(physical_device_);
 
     std::vector<vk::DeviceQueueCreateInfo> info_group;
@@ -314,21 +334,24 @@ void Vlkn::createLogicalDevice() {
     try {
         device_ = physical_device_.createDevice(device_info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 5");
+        throw std::runtime_error(
+            "ERR 039: Failed to create Logical device. Vlkn::createLogicalDevice(...)\n"
+            + std::string(err.what())
+        );
     }
 
     graphics_queue_ = device_.getQueue(graphics.value(), 0);
     present_queue_ = device_.getQueue(present.value(), 0);
 }
 
-void Vlkn::createSwapchain() {
+void tdl::Vlkn::createSwapchain() {
     const SwapChainSupportDetails sc_support = {
         physical_device_.getSurfaceCapabilitiesKHR(surface_),
         physical_device_.getSurfaceFormatsKHR(surface_),
         physical_device_.getSurfacePresentModesKHR(surface_)
     };
     const vk::SurfaceFormatKHR surfaceFormat = chooseFormat(sc_support.formats);
-    const vk::PresentModeKHR presentMode = chooseMode(sc_support.presentModes);
+    const vk::PresentModeKHR presentMode = chooseMode(sc_support.present_modes);
     const vk::Extent2D extent = chooseExtent(sc_support.capabilities);
 
     uint32_t imageCount = sc_support.capabilities.minImageCount + 1;
@@ -368,7 +391,10 @@ void Vlkn::createSwapchain() {
     try {
         swapchain_ = device_.createSwapchainKHR(info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 6");
+        throw std::runtime_error(
+            "ERR 040: Failed to create swapchain. Vlkn::createSwapchain(...)\n"
+            + std::string(err.what())
+        );
     }
 
     images_ = device_.getSwapchainImagesKHR(swapchain_);
@@ -376,7 +402,7 @@ void Vlkn::createSwapchain() {
     format_ = surfaceFormat.format;
 }
 
-void Vlkn::createImageViews() {
+void tdl::Vlkn::createImageViews() {
     image_views_.resize(images_.size());
 
     for (size_t i = 0; i < images_.size(); ++i) {
@@ -397,12 +423,15 @@ void Vlkn::createImageViews() {
                 }
             );
         } catch (const vk::SystemError& err) {
-            throw std::runtime_error("failed to create image views!");
+            throw std::runtime_error(
+                "ERR 041: Failed to create image views. Vlkn::createImageViews(...)\n"
+                + std::string(err.what())
+            );
         }
     }
 }
 
-void Vlkn::createRenderPass() {
+void tdl::Vlkn::createRenderPass() {
     const vk::AttachmentDescription color {
         {},
         format_,
@@ -465,12 +494,15 @@ void Vlkn::createRenderPass() {
             1,
             &dependency
         });
-    } catch (const vk::SystemError& e) {
-        throw std::runtime_error("ERR 8");
+    } catch (const vk::SystemError& err) {
+        throw std::runtime_error(
+            "ERR 042: Failed to create render pass. Vlkn::createRenderPass(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
-void Vlkn::createFramebuffers() {
+void tdl::Vlkn::createFramebuffers() {
     framebuffers_.resize(image_views_.size());
 
     for (size_t i = 0; i < image_views_.size(); ++i) {
@@ -489,12 +521,15 @@ void Vlkn::createFramebuffers() {
         try {
             framebuffers_[i] = device_.createFramebuffer(framebufferInfo);
         } catch (const vk::SystemError& err) {
-            throw std::runtime_error("ERR 11");
+            throw std::runtime_error(
+                "ERR 043: Failed to create framebuffer. Vlkn::createFramebuffers(...)\n"
+                + std::string(err.what())
+            );
         }
     }
 }
 
-void Vlkn::createCommandPool() {
+void tdl::Vlkn::createCommandPool() {
     const auto [graphics, _] = findQueueFamilies(physical_device_);
     const vk::CommandPoolCreateInfo pool_info = {
         {},
@@ -504,11 +539,14 @@ void Vlkn::createCommandPool() {
     try {
         command_pool_ = device_.createCommandPool(pool_info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 12");
+        throw std::runtime_error(
+            "ERR 044: Failed to create command pool. Vlkn::createCommandPool(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
-void Vlkn::loadModels() {
+void tdl::Vlkn::loadModels() {
     for (const auto& object : objects_) {
         object->loadMesh(device_, graphics_queue_, command_pool_, physical_device_);
 
@@ -529,11 +567,11 @@ void Vlkn::loadModels() {
             physical_device_
         );
 
-        object->createDescriptorSets(max_f_frames_, descriptor_pool_, device_, model_layout_);
+        object->createDescriptorSets(max_f_frames_, descriptor_pool_, device_, model_layout_, object_layout_);
     }
 }
 
-void Vlkn::startCommandBuffers() {
+void tdl::Vlkn::startCommandBuffers() {
     command_buffers_.resize(framebuffers_.size());
 
     const vk::CommandBufferAllocateInfo alloc_info = {
@@ -545,7 +583,10 @@ void Vlkn::startCommandBuffers() {
     try {
         command_buffers_ = device_.allocateCommandBuffers(alloc_info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 16");
+        throw std::runtime_error(
+            "ERR 045: Failed to create command buffers. Vlkn::createCommandBuffers(...)\n"
+            + std::string(err.what())
+        );
     }
 
     for (size_t i = 0; i < command_buffers_.size(); ++i) {
@@ -556,7 +597,10 @@ void Vlkn::startCommandBuffers() {
         try {
             command_buffers_[i].begin(begin_info);
         } catch (const vk::SystemError& err) {
-            throw std::runtime_error("ERR 17");
+            throw std::runtime_error(
+                "ERR 046: Failed to start command buffer. Vlkn::startCommandBuffers(...)\n"
+                + std::string(err.what())
+            );
         }
 
         std::array<vk::ClearValue, 2> clear_values {
@@ -588,12 +632,15 @@ void Vlkn::startCommandBuffers() {
         try {
             command_buffers_[i].end();
         } catch (const vk::SystemError& err) {
-            throw std::runtime_error("ERR 18");
+            throw std::runtime_error(
+            "ERR 047: Failed to end command buffer. Vlkn::startCommandBuffers(...)\n"
+            + std::string(err.what())
+        );
         }
     }
 }
 
-void Vlkn::createSyncObjects() {
+void tdl::Vlkn::createSyncObjects() {
     image_available_.resize(max_f_frames_);
     render_finished_.resize(max_f_frames_);
     fences_.resize(max_f_frames_);
@@ -605,11 +652,14 @@ void Vlkn::createSyncObjects() {
             render_finished_[i] = device_.createSemaphore({});
         }
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 19");
+        throw std::runtime_error(
+            "ERR 048: Failed to create fences & semaphores. Vlkn::createSyncObjects(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
-void Vlkn::createGraphicsPipeline() {
+void tdl::Vlkn::createGraphicsPipeline() {
     const vk::UniqueShaderModule vert = createShaderModule(readFile("../shaders/vert.spv"));
     const vk::UniqueShaderModule frag = createShaderModule(readFile("../shaders/frag.spv"));
 
@@ -714,9 +764,9 @@ void Vlkn::createGraphicsPipeline() {
         {0.0f, 0.0f, 0.0f, 0.0f}
     };
 
-    const vk::DescriptorSetLayout layouts[] = { ubo_layout_, texture_layout_, model_layout_ };
+    const vk::DescriptorSetLayout layouts[] = { ubo_layout_, texture_layout_, object_layout_, model_layout_ };
 
-    const vk::PipelineLayoutCreateInfo pipe_info {
+    vk::PipelineLayoutCreateInfo pipe_info { // NOLINT (not a constant expression)
         {},
         std::size(layouts),
         layouts
@@ -725,7 +775,10 @@ void Vlkn::createGraphicsPipeline() {
     try {
         pipeline_layout_ = device_.createPipelineLayout(pipe_info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 9");
+        throw std::runtime_error(
+            "ERR 049: Failed to create pipeline layout. Vlkn::createPipelineLayout(...)\n"
+            + std::string(err.what())
+        );
     }
 
     static constexpr vk::PipelineDepthStencilStateCreateInfo depth_stencil {
@@ -764,11 +817,14 @@ void Vlkn::createGraphicsPipeline() {
     try {
         graphics_pipeline_ = device_.createGraphicsPipeline(nullptr, info).value;
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 10");
+        throw std::runtime_error(
+            "ERR 050: Failed to create graphics pipeline. Vlkn::createGraphicsPipeline(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
-void Vlkn::createDescriptorSetLayout() {
+void tdl::Vlkn::createDescriptorSetLayout() {
     static constexpr vk::DescriptorSetLayoutBinding ubo_binding {
         0,
         vk::DescriptorType::eUniformBuffer,
@@ -777,8 +833,16 @@ void Vlkn::createDescriptorSetLayout() {
         nullptr
     };
 
-    static constexpr vk::DescriptorSetLayoutBinding model_binding {
+    static constexpr vk::DescriptorSetLayoutBinding object_binding {
         1,
+        vk::DescriptorType::eUniformBuffer,
+        1,
+        vk::ShaderStageFlagBits::eVertex,
+        nullptr
+    };
+
+    static constexpr vk::DescriptorSetLayoutBinding model_binding {
+        2,
         vk::DescriptorType::eUniformBuffer,
         1,
         vk::ShaderStageFlagBits::eVertex,
@@ -805,7 +869,23 @@ void Vlkn::createDescriptorSetLayout() {
             nullptr,
             &ubo_layout_
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 14");
+    ) throw std::runtime_error (
+        "ERR 057: failed to create descriptor layout for ubo_binding"
+        "Vlkn::createDescriptorSetLayout(...)"
+    );
+
+    layout_info.pBindings = &object_binding;
+
+    if (
+        device_.createDescriptorSetLayout(
+            &layout_info,
+            nullptr,
+            &object_layout_
+        ) != vk::Result::eSuccess
+    ) throw std::runtime_error (
+        "ERR 058: failed to create descriptor layout for object_binding"
+        "Vlkn::createDescriptorSetLayout(...)"
+    );
 
     layout_info.pBindings = &model_binding;
 
@@ -815,7 +895,10 @@ void Vlkn::createDescriptorSetLayout() {
             nullptr,
             &model_layout_
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 14");
+    ) throw std::runtime_error (
+        "ERR 059: failed to create descriptor layout for model_binding"
+        "Vlkn::createDescriptorSetLayout(...)"
+    );
 
     layout_info.pBindings = &texture_binding;
 
@@ -825,10 +908,13 @@ void Vlkn::createDescriptorSetLayout() {
             nullptr,
             &texture_layout_
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 14");
+    ) throw std::runtime_error (
+        "ERR 060: failed to create descriptor layout for texture_binding"
+        "Vlkn::createDescriptorSetLayout(...)"
+    );
 }
 
-void Vlkn::createZBuffer() {
+void tdl::Vlkn::createZBuffer() {
     static constexpr auto format = vk::Format::eD32Sfloat;
 
     const vk::ImageCreateInfo info {
@@ -849,7 +935,10 @@ void Vlkn::createZBuffer() {
     try {
         z_buffer_ = device_.createImage(info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 15");
+        throw std::runtime_error(
+            "ERR 051: Failed to create zbuffer. Vlkn::createZBuffer(...)\n"
+            + std::string(err.what())
+        );
     }
 
     const vk::MemoryRequirements reqs = device_.getImageMemoryRequirements(z_buffer_);
@@ -866,7 +955,10 @@ void Vlkn::createZBuffer() {
     try {
         z_buffer_memory_ = device_.allocateMemory(alloc_info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 15");
+        throw std::runtime_error(
+            "ERR 052: Failed to allocate memory for zbuffer. Vlkn::createZBuffer(...)\n"
+            + std::string(err.what())
+        );
     }
 
     device_.bindImageMemory(z_buffer_, z_buffer_memory_, 0);
@@ -889,12 +981,15 @@ void Vlkn::createZBuffer() {
     try {
         z_buffer_view_ = device_.createImageView(view_info);
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 15");
+        throw std::runtime_error(
+            "ERR 053: Failed to create zbuffer view. Vlkn::createZBuffer(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
 
-void Vlkn::createUniformBuffers() {
+void tdl::Vlkn::createUniformBuffers() {
     static constexpr vk::DeviceSize buffer_size = sizeof(UniformBufferObject);
 
     uniform_buffers_.resize(max_f_frames_);
@@ -912,7 +1007,7 @@ void Vlkn::createUniformBuffers() {
     }
 }
 
-void Vlkn::createDescriptorPool() {
+void tdl::Vlkn::createDescriptorPool() {
     const vk::DescriptorPoolSize pool_sizes[] {
         {
             vk::DescriptorType::eUniformBuffer,
@@ -924,12 +1019,16 @@ void Vlkn::createDescriptorPool() {
         }
     };
 
+    size_t descriptor_size = 0;
+
+    for (const auto& model : objects_) {
+        descriptor_size += max_f_frames_ + model->objects_.size() * (1 + max_f_frames_);
+    }
+
     const vk::DescriptorPoolCreateInfo pool_info {
         {vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet},
         static_cast<uint32_t>(
-            max_f_frames_ // Global UBO
-            + objects_.size() // Texture & Model
-            + (objects_.size() * max_f_frames_) // Model UBO
+            max_f_frames_ + descriptor_size
         ),
         static_cast<uint32_t>(std::size(pool_sizes)),
         pool_sizes
@@ -941,10 +1040,10 @@ void Vlkn::createDescriptorPool() {
             nullptr,
             &descriptor_pool_
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 13");
+        ) throw std::runtime_error("ERR 054: Failed to allocate descriptor pool. Vlkn::createDescriptorPool(...)");
 }
 
-void Vlkn::createDescriptorSets() {
+void tdl::Vlkn::createDescriptorSets() {
     std::vector<vk::DescriptorSetLayout> layouts (max_f_frames_, ubo_layout_);
 
     const vk::DescriptorSetAllocateInfo alloc_info {
@@ -960,7 +1059,7 @@ void Vlkn::createDescriptorSets() {
             &alloc_info,
             descriptor_sets_.data()
         ) != vk::Result::eSuccess
-    ) throw std::runtime_error("ERR 14 ");
+    ) throw std::runtime_error("ERR 055: Vlkn::createDescriptorSets(...)");
 
     for (size_t i = 0; i < max_f_frames_; ++i) {
         vk::DescriptorBufferInfo buffer_info = {
@@ -984,20 +1083,27 @@ void Vlkn::createDescriptorSets() {
     }
 }
 
-void Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
+void tdl::Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
     uniform_buffers_[current_frame_]->set(&ubo, sizeof(ubo));
 
-    for (const auto& object : objects_) {
-        object->imageTick();
+    for (const auto& model : objects_) {
+        model->imageTick();
 
-        if(object->has_changed_) {
-            object->ubos_[current_frame_]->set(&object->ubo_data_, sizeof(object->ubo_data_));
-            object->has_changed_ = false;
+        for (const auto& [_, obj] : model->objects_) {
+            if(obj->has_changed_) {
+                obj->ubos_[current_frame_]->set(&obj->ubo_data_, sizeof(obj->ubo_data_));
+                obj->has_changed_ = false;
+            }
+        }
+
+        if(model->has_changed_) {
+            model->ubos_[current_frame_]->set(&model->ubo_data_, sizeof(model->ubo_data_));
+            model->has_changed_ = false;
         }
     }
 }
 
-[[nodiscard]] vk::UniqueShaderModule Vlkn::createShaderModule(
+[[nodiscard]] vk::UniqueShaderModule tdl::Vlkn::createShaderModule(
     const std::vector<char>& code
 ) const {
     try {
@@ -1007,21 +1113,23 @@ void Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
             reinterpret_cast<const uint32_t*>(code.data())
         });
     } catch (const vk::SystemError& err) {
-        throw std::runtime_error("ERR 25");
+        throw std::runtime_error(
+            "ERR 056: Failed to create shader module. Vlkn::createShaderModule(...)\n"
+            + std::string(err.what())
+        );
     }
 }
 
-[[nodiscard]] vk::Extent2D Vlkn::chooseExtent(
+[[nodiscard]] vk::Extent2D tdl::Vlkn::chooseExtent(
     const vk::SurfaceCapabilitiesKHR& capabilities
-) const  {
+) const {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     }
 
-    int width, height;
-    glfwGetFramebufferSize(info_.window_, &width, &height);
+    glfwGetFramebufferSize(info_->window_, &info_->width_, &info_->height_);
 
-    vk::Extent2D extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+    vk::Extent2D extent = { static_cast<uint32_t>(info_->width_), static_cast<uint32_t>(info_->height_) };
 
     extent.width = std::max(
         capabilities.minImageExtent.width,
@@ -1035,7 +1143,7 @@ void Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
     return extent;
 }
 
-[[nodiscard]] SwapChainSupportDetails Vlkn::querySwapChainSupport(
+[[nodiscard]] tdl::SwapChainSupportDetails tdl::Vlkn::querySwapChainSupport(
     const vk::PhysicalDevice& device
 ) const  {
     return {
@@ -1045,20 +1153,25 @@ void Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
     };
 }
 
-[[nodiscard]] bool Vlkn::isDeviceSuitable(const vk::PhysicalDevice& device) const {
+[[nodiscard]] bool tdl::Vlkn::isDeviceSuitable(const vk::PhysicalDevice& device) const {
     const auto [graphics, present] = findQueueFamilies(device);
     const bool supported_extensions = checkDeviceExtensionSupport(device);
     bool swapChainAdequate = false;
 
     if (supported_extensions) {
-        const SwapChainSupportDetails sc_support = querySwapChainSupport(device);
-        swapChainAdequate = !sc_support.formats.empty() && !sc_support.presentModes.empty();
+        const auto [
+            _,
+            formats,
+            present_modes
+        ] = querySwapChainSupport(device);
+
+        swapChainAdequate = !formats.empty() && !present_modes.empty();
     }
 
     return graphics.has_value() && present.has_value() && supported_extensions && swapChainAdequate;
 }
 
-[[nodiscard]] GraphicsPresentInfo Vlkn::findQueueFamilies(
+[[nodiscard]] tdl::GraphicsPresentInfo tdl::Vlkn::findQueueFamilies(
     const vk::PhysicalDevice& device
 ) const {
     GraphicsPresentInfo indices;
@@ -1070,16 +1183,16 @@ void Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
         if (
             queueFamily.queueCount > 0 &&
             queueFamily.queueFlags & vk::QueueFlagBits::eGraphics
-        ) indices.graphics_family_ = i;
+        ) indices.graphics_family = i;
 
         if (
             queueFamily.queueCount > 0 &&
             device.getSurfaceSupportKHR(i, surface_)
-        ) indices.present_family_ = i;
+        ) indices.present_family = i;
 
         if (
-            indices.graphics_family_.has_value() &&
-            indices.present_family_.has_value()
+            indices.graphics_family.has_value() &&
+            indices.present_family.has_value()
         ) break;
 
         ++i;

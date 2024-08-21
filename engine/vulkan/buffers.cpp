@@ -1,6 +1,6 @@
 #include "buffers.hpp"
 
-vk::CommandBuffer CommandBuffer::begin(
+vk::CommandBuffer tdl::CommandBuffer::begin(
     const vk::Device device,
     const vk::CommandPool command_pool
 ) {
@@ -24,7 +24,7 @@ vk::CommandBuffer CommandBuffer::begin(
     return command_buffer;
 }
 
-void CommandBuffer::end(
+void tdl::CommandBuffer::end(
     const vk::Device device,
     const vk::CommandBuffer command_buffer,
     const vk::CommandPool command_pool,
@@ -53,7 +53,7 @@ void CommandBuffer::end(
     device.freeCommandBuffers(command_pool, command_buffer);
 }
 
-Image::Image(
+tdl::Image::Image(
     const unsigned char* const image,
     const uint32_t width,
     const uint32_t height,
@@ -73,7 +73,7 @@ Image::Image(
     );
 }
 
-void Image::setImageLayout(
+void tdl::Image::setImageLayout(
     const vk::Image image,
     const vk::ImageLayout old_layout,
     const vk::ImageLayout new_layout,
@@ -123,7 +123,7 @@ void Image::setImageLayout(
         src = vk::PipelineStageFlagBits::eTransfer;
         dst = vk::PipelineStageFlagBits::eFragmentShader;
     } else {
-        throw std::invalid_argument("ERR 003: Unsupported layout transition! Image::setImageLayout(...)\n");
+        throw std::invalid_argument("ERR 003: Unsupported layout transition! tdl::Image::setImageLayout(...)\n");
     }
 
     command_buffer.pipelineBarrier(
@@ -141,7 +141,7 @@ void Image::setImageLayout(
     CommandBuffer::end(device, command_buffer, command_pool, graphics_queue);
 }
 
-void Image::loadImage(
+void tdl::Image::loadImage(
     const unsigned char* const image,
     const uint32_t width,
     const uint32_t height,
@@ -194,7 +194,7 @@ void Image::loadImage(
         image_ = device.createImage(image_info);
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 004: Failed to create image! Image::loadImage(...)"
+            "ERR 004: Failed to create image! tdl::Image::loadImage(...)"
             + std::string(e.what())
         );
     }
@@ -203,7 +203,7 @@ void Image::loadImage(
 
     const vk::MemoryAllocateInfo alloc_info {
         image_size,
-        MemoryBuffer::findMemoryType(
+        tdl::MemoryBuffer::findMemoryType(
             p_device,
             mem_reqs.memoryTypeBits,
             vk::MemoryPropertyFlagBits::eDeviceLocal
@@ -214,7 +214,7 @@ void Image::loadImage(
         device.allocateMemory(&alloc_info, nullptr, &image_memory_)
         != vk::Result::eSuccess
     ) {
-        throw std::runtime_error("ERR 005: Failed to allocate image memory! Image::loadImage(...)");
+        throw std::runtime_error("ERR 005: Failed to allocate image memory! tdl::Image::loadImage(...)");
     }
 
     image_memory_ = device.allocateMemory(alloc_info);
@@ -259,13 +259,44 @@ void Image::loadImage(
         image_view_ = device.createImageView(view_info);
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 006: Failed to create image view! Image::loadImage(...)"
+            "ERR 006: Failed to create image view! tdl::Image::loadImage(...)"
             + std::string(e.what())
         );
     }
 }
 
-void Image::createSampler() {
+void tdl::Image::recreateImageView(
+    const vk::Device device
+) {
+    device.destroyImageView(image_view_);
+
+    const vk::ImageViewCreateInfo view_info {
+        {},
+        image_,
+        vk::ImageViewType::e2D,
+        vk::Format::eR8G8B8A8Srgb,
+        {},
+        vk::ImageSubresourceRange {
+            vk::ImageAspectFlagBits::eColor,
+            0,
+            1,
+            0,
+            1
+        }
+    };
+
+    try {
+        image_view_ = device.createImageView(view_info);
+    } catch (const vk::SystemError& e) {
+        throw std::runtime_error(
+            "ERR 006: Failed to create image view! tdl::Image::loadImage(...)"
+            + std::string(e.what())
+        );
+    }
+}
+
+
+void tdl::Image::createSampler() {
     device_.destroySampler(sampler_);
 
     vk::PhysicalDeviceProperties properties {};
@@ -276,9 +307,9 @@ void Image::createSampler() {
         vk::Filter::eLinear,
         vk::Filter::eLinear,
         vk::SamplerMipmapMode::eLinear,
-        vk::SamplerAddressMode::eMirrorClampToEdgeKHR,
-        vk::SamplerAddressMode::eMirrorClampToEdgeKHR,
-        vk::SamplerAddressMode::eMirrorClampToEdgeKHR,
+        vk::SamplerAddressMode::eRepeat,
+        vk::SamplerAddressMode::eRepeat,
+        vk::SamplerAddressMode::eRepeat,
         0.0f,
         properties.limits.maxSamplerAnisotropy > 1.0f,
         properties.limits.maxSamplerAnisotropy,
@@ -294,13 +325,13 @@ void Image::createSampler() {
         sampler_ = device_.createSampler(sampler_info);
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 007: Failed to create sampler! Image::createSampler(...)"
+            "ERR 007: Failed to create sampler! tdl::Image::createSampler(...)"
             + std::string(e.what())
         );
     }
 }
 
-void Image::createDescriptor(
+void tdl::Image::createDescriptor(
     const vk::DescriptorSetLayout layout,
     const vk::DescriptorPool descriptor_pool
 ) {
@@ -314,13 +345,13 @@ void Image::createDescriptor(
         descriptor_set_ = device_.allocateDescriptorSets(alloc_info)[0];
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 008: Failed to allocate descriptor set! Image::createDescriptor(...)"
+            "ERR 008: Failed to allocate descriptor set! tdl::Image::createDescriptor(...)"
             + std::string(e.what())
         );
     }
 }
 
-void Image::updateDescriptor() const {
+void tdl::Image::updateDescriptor() const {
     const vk::DescriptorImageInfo image_info {
         sampler_,
         image_view_,
@@ -345,13 +376,13 @@ void Image::updateDescriptor() const {
         );
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
-            "ERR 009: Failed to update descriptor set! Image::updateDescriptor(...)"
+            "ERR 009: Failed to update descriptor set! tdl::Image::updateDescriptor(...)"
             + std::string(e.what())
         );
     }
 }
 
-void Image::render(
+void tdl::Image::render(
     const vk::CommandBuffer command_buffer,
     const vk::PipelineLayout pipeline_layout
 ) const {
@@ -366,11 +397,11 @@ void Image::render(
     );
 }
 
-void Image::setDevice(
+void tdl::Image::setDevice(
     const vk::Device device
 ) { device_ = device; }
 
-Image::~Image() {
+tdl::Image::~Image() {
     delete buffer_;
 
     try {
@@ -380,13 +411,13 @@ Image::~Image() {
         device_.destroySampler(sampler_);
     } catch (const vk::SystemError& err) {
         throw std::runtime_error(
-            "ERR 010: Failed to free image recources. Image::~Image(...)\n"
+            "ERR 010: Failed to free image recources. tdl::Image::~Image(...)\n"
             + err.code().message()
         );
     }
 }
 
-void MemoryBuffer::set(
+void tdl::MemoryBuffer::set(
     const void* const data,
     const vk::DeviceSize buffer_size
 ) const {
@@ -396,13 +427,13 @@ void MemoryBuffer::set(
         device_.unmapMemory(memory_);
     } catch (const vk::SystemError& err) {
         throw std::runtime_error(
-            "ERR 011: Failed to map memory for buffer. MemoryBuffer::set(...)\n"
+            "ERR 011: Failed to map memory for buffer. tdl::MemoryBuffer::set(...)\n"
             + err.code().message()
         );
     }
 }
 
-void MemoryBuffer::copy(
+void tdl::MemoryBuffer::copy(
     const MemoryBuffer& source,
     const vk::DeviceSize size
 ) const {
@@ -417,7 +448,7 @@ void MemoryBuffer::copy(
     CommandBuffer::end(device_, command_buffer, command_pool_, graphics_queue_);
 }
 
-uint32_t MemoryBuffer::findMemoryType(
+uint32_t tdl::MemoryBuffer::findMemoryType(
     const vk::PhysicalDevice p_device,
     const uint32_t filter,
     const vk::MemoryPropertyFlags& properties
@@ -431,10 +462,10 @@ uint32_t MemoryBuffer::findMemoryType(
         ) return i;
     }
 
-    throw std::runtime_error("ERR 012: Failed to find suitable memory type! MemoryBuffer::findMemoryType(...)\n");
+    throw std::runtime_error("ERR 012: Failed to find suitable memory type! tdl::MemoryBuffer::findMemoryType(...)\n");
 }
 
-void MemoryBuffer::bufferAsImage(
+void tdl::MemoryBuffer::bufferAsImage(
     const vk::Image image,
     const uint32_t width, const uint32_t height,
     const vk::Device device,
@@ -468,7 +499,7 @@ void MemoryBuffer::bufferAsImage(
     CommandBuffer::end(device, command_buffer, command_pool, graphics_queue);
 }
 
-void MemoryBuffer::createBuffer(
+void tdl::MemoryBuffer::createBuffer(
     const vk::DeviceSize size,
     const vk::BufferUsageFlags &usage,
     const vk::MemoryPropertyFlags &properties
@@ -482,7 +513,7 @@ void MemoryBuffer::createBuffer(
         });
     } catch (const vk::SystemError& err) {
         throw std::runtime_error(
-            "ERR 013: Failed to create buffer. MemoryBuffer::createBuffer(...)\n"
+            "ERR 013: Failed to create buffer. tdl::MemoryBuffer::createBuffer(...)\n"
             + err.code().message()
         );
     }
@@ -497,7 +528,7 @@ void MemoryBuffer::createBuffer(
         memory_ = device_.allocateMemory(allocInfo);
     } catch (const vk::SystemError& err) {
         throw std::runtime_error(
-            "ERR 014: Failed to allocate memory for buffer. MemoryBuffer::createBuffer(...)\n"
+            "ERR 014: Failed to allocate memory for buffer. tdl::MemoryBuffer::createBuffer(...)\n"
             + err.code().message()
         );
     }

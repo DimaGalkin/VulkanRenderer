@@ -1,22 +1,19 @@
 #include "engine/threedl.hpp"
 
-const auto plane_one = makeObject("../assets/F-18.obj", "../assets/F-18.png");
+const auto plane_one = tdl::make_model("../assets/F-18.obj");
 
 int main() {
-    ThreeDL<tdl::Control::Controlled> app {};
+    tdl::ThreeDL app {};
 
-    const auto camera = std::make_shared<tdl::FPSController>(16.0f/9.0f);
+    const auto camera = tdl::make_camera<tdl::DefaultController>(16.0f/9.0f);
 
-    app.setCamera<tdl::FPSController>(camera);
+    app.setCamera(camera);
 
-    plane_one->rotate({0, -glm::pi<float>() / 2, 0}, {0, 0, 0});
+    plane_one->translate({0, 1, 0});
 
     app.add(plane_one);
 
-    app.start([]() {
-        plane_one->translate({0, 0, 0.05});
-        plane_one->rotate({0.0001, 0.0001, 0}, SELFCENTRE);
-    });
+    app.start();
 
     return 0;
 }
