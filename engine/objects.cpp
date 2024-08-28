@@ -380,18 +380,12 @@ void tdl::Mesh::initBuffer(
 }
 
 void tdl::Mesh::render(
-    const vk::CommandBuffer& command_buffer
+    const vk::CommandBuffer command_buffer
 ) const {
     const vk::Buffer buffers[] = { buffer_->getBuffer() };
     static constexpr vk::DeviceSize offsets[] = { 0 };
     command_buffer.bindVertexBuffers(0, 1, buffers, offsets);
     command_buffer.draw(static_cast<uint32_t>(vertices_.size()), 1, 0, 0);
-}
-
-void tdl::Mesh::load() {
-    if (loaded_) return;
-    //vertices_ = tdl::OBJLoader::load(path_);
-    loaded_ = true;
 }
 
 void tdl::Texture::load(
@@ -449,15 +443,9 @@ void tdl::Texture::setNextImage() {
     );
 }
 
-void tdl::Texture::recreateImageView(
-    const vk::Device device
-) {
-    image_.recreateImageView(device);
-}
-
 void tdl::Texture::render(
-    const vk::CommandBuffer &command_buffer,
-    const vk::PipelineLayout &pipeline_layout
+    const vk::CommandBuffer command_buffer,
+    const vk::PipelineLayout pipeline_layout
 ) const {
     image_.render(command_buffer, pipeline_layout);
 }
@@ -595,8 +583,8 @@ void tdl::Texture::loadColor() {
 }
 
 void tdl::Model::rotate(
-    const glm::vec3 &angles,
-    const glm::vec3 &centre
+    const glm::vec3& angles,
+    const glm::vec3& centre
 ) {
     ubo_data_.rotation = glm::translate(ubo_data_.rotation, centre);
     ubo_data_.rotation = glm::rotate(ubo_data_.rotation, angles.x, {1, 0, 0});
@@ -608,7 +596,7 @@ void tdl::Model::rotate(
 }
 
 void tdl::Model::rotate(
-    const glm::vec3 &angles
+    const glm::vec3& angles
 ) {
     ubo_data_.rotation = glm::translate(ubo_data_.rotation, centre_);
     ubo_data_.rotation = glm::rotate(ubo_data_.rotation, angles.x, {1, 0, 0});
@@ -620,7 +608,7 @@ void tdl::Model::rotate(
 }
 
 void tdl::Model::translate(
-    const glm::vec3 &val
+    const glm::vec3& val
 ) {
     ubo_data_.translation = glm::translate(ubo_data_.translation, val);
 }
@@ -640,13 +628,8 @@ tdl::shared_model<tdl::Model> tdl::Model::operator[] (
 }
 
 std::vector<std::string> tdl::Model::getKeys() const {
-    std::vector<std::string> keys;
-
-    for (const auto& [name, _] : objects_) {
-        keys.push_back(name);
-    }
-
-    return keys;
+    const auto keys = objects_ | std::views::keys;
+    return {keys.begin(), keys.end()};
 }
 
 void tdl::Model::imageTick() {
@@ -657,7 +640,7 @@ void tdl::Model::imageTick() {
 
 void tdl::Model::frameTick() {
     for (const auto &obj: objects_ | std::views::values) {
-    obj->tex_->loadNextFrame();
+        obj->tex_->loadNextFrame();
     }
 }
 

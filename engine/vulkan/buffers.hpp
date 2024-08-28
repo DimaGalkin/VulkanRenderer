@@ -86,7 +86,8 @@ namespace tdl {
 
             void asImage (
                 const vk::Image image,
-                const uint32_t width, const uint32_t height
+                const uint32_t width,
+                const uint32_t height
             ) const {
                 bufferAsImage(
                     image,
@@ -130,7 +131,8 @@ namespace tdl {
 
             Image (
                 const unsigned char* image,
-                uint32_t width, uint32_t height,
+                uint32_t width,
+                uint32_t height,
                 vk::Device device,
                 vk::CommandPool command_pool,
                 vk::Queue graphics_queue,

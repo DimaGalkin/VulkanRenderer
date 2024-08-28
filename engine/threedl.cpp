@@ -1,9 +1,11 @@
 #include "threedl.hpp"
 
+#include <thread>
+
 #include "objects.hpp"
 
 void tdl::ThreeDL::internalAnimation(
-    const std::function<void()> &animation
+    const std::function<void()>& animation
 ) {
     while (!glfwWindowShouldClose(info_.window_)) {
         glfwPollEvents();
@@ -48,7 +50,7 @@ void tdl::ThreeDL::openWindow() {
 }
 
 void tdl::ThreeDL::start(
-    const std::function<void()> &animation
+    const std::function<void()>& animation
 ) {
     app_ = std::make_unique<Vlkn>(&info_);
 
@@ -96,7 +98,7 @@ void tdl::ThreeDL::start(
 }
 
 void tdl::ThreeDL::onKey(
-    GLFWwindow *window,
+    GLFWwindow* window,
     const int key,
     const int scancode,
     const int action,
@@ -112,7 +114,7 @@ void tdl::ThreeDL::onKey(
 }
 
 void tdl::ThreeDL::onResize(
-    GLFWwindow *window,
+    GLFWwindow* window,
     const int width,
     const int height
 ) {

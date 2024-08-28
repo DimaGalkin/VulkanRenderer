@@ -109,7 +109,7 @@ namespace tdl {
      * inheriting from this class and overloading key methods or the tdl::DefaultController class can be used.
     */
     class CameraController : public Camera {
-            public:
+        public:
             /**
              * @breif Calls parent class constructor (Camera)
              *

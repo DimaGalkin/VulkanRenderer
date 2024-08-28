@@ -1,13 +1,10 @@
 #pragma once
 
-#include <opencv4/opencv2/opencv.hpp>
-
 #include <vector>
 #include <memory>
 #include <unordered_map>
 #include <chrono>
 #include <mutex>
-#include <thread>
 #include <functional>
 
 #include "camera.hpp"

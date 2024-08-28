@@ -1042,7 +1042,6 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
-  /usr/include/c++/13/bits/deque.tcc \
   /usr/include/c++/13/bits/enable_special_members.h \
   /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
@@ -1058,7 +1057,6 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/include/c++/13/bits/ios_base.h \
   /usr/include/c++/13/bits/istream.tcc \
   /usr/include/c++/13/bits/iterator_concepts.h \
-  /usr/include/c++/13/bits/list.tcc \
   /usr/include/c++/13/bits/locale_classes.h \
   /usr/include/c++/13/bits/locale_classes.tcc \
   /usr/include/c++/13/bits/locale_conv.h \
@@ -1104,23 +1102,15 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/include/c++/13/bits/stl_algobase.h \
   /usr/include/c++/13/bits/stl_bvector.h \
   /usr/include/c++/13/bits/stl_construct.h \
-  /usr/include/c++/13/bits/stl_deque.h \
   /usr/include/c++/13/bits/stl_function.h \
   /usr/include/c++/13/bits/stl_heap.h \
   /usr/include/c++/13/bits/stl_iterator.h \
   /usr/include/c++/13/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/13/bits/stl_iterator_base_types.h \
-  /usr/include/c++/13/bits/stl_list.h \
-  /usr/include/c++/13/bits/stl_map.h \
-  /usr/include/c++/13/bits/stl_multimap.h \
-  /usr/include/c++/13/bits/stl_multiset.h \
   /usr/include/c++/13/bits/stl_pair.h \
-  /usr/include/c++/13/bits/stl_queue.h \
   /usr/include/c++/13/bits/stl_raw_storage_iter.h \
   /usr/include/c++/13/bits/stl_relops.h \
-  /usr/include/c++/13/bits/stl_set.h \
   /usr/include/c++/13/bits/stl_tempbuf.h \
-  /usr/include/c++/13/bits/stl_tree.h \
   /usr/include/c++/13/bits/stl_uninitialized.h \
   /usr/include/c++/13/bits/stl_vector.h \
   /usr/include/c++/13/bits/stream_iterator.h \
@@ -1159,7 +1149,6 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/include/c++/13/cwctype \
   /usr/include/c++/13/debug/assertions.h \
   /usr/include/c++/13/debug/debug.h \
-  /usr/include/c++/13/deque \
   /usr/include/c++/13/exception \
   /usr/include/c++/13/ext/aligned_buffer.h \
   /usr/include/c++/13/ext/alloc_traits.h \
@@ -1179,10 +1168,7 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/include/c++/13/istream \
   /usr/include/c++/13/iterator \
   /usr/include/c++/13/limits \
-  /usr/include/c++/13/list \
   /usr/include/c++/13/locale \
-  /usr/include/c++/13/map \
-  /usr/include/c++/13/math.h \
   /usr/include/c++/13/memory \
   /usr/include/c++/13/mutex \
   /usr/include/c++/13/new \
@@ -1193,11 +1179,9 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/include/c++/13/pstl/glue_algorithm_defs.h \
   /usr/include/c++/13/pstl/glue_memory_defs.h \
   /usr/include/c++/13/pstl/pstl_config.h \
-  /usr/include/c++/13/queue \
   /usr/include/c++/13/ranges \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/semaphore \
-  /usr/include/c++/13/set \
   /usr/include/c++/13/span \
   /usr/include/c++/13/sstream \
   /usr/include/c++/13/stdexcept \
@@ -1539,16 +1523,10 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/xmmintrin.h \
-  /usr/local/include/opencv4/opencv2/calib3d.hpp \
   /usr/local/include/opencv4/opencv2/core.hpp \
-  /usr/local/include/opencv4/opencv2/core/affine.hpp \
-  /usr/local/include/opencv4/opencv2/core/async.hpp \
   /usr/local/include/opencv4/opencv2/core/base.hpp \
   /usr/local/include/opencv4/opencv2/core/bufferpool.hpp \
   /usr/local/include/opencv4/opencv2/core/check.hpp \
-  /usr/local/include/opencv4/opencv2/core/cuda.hpp \
-  /usr/local/include/opencv4/opencv2/core/cuda.inl.hpp \
-  /usr/local/include/opencv4/opencv2/core/cuda_types.hpp \
   /usr/local/include/opencv4/opencv2/core/cv_cpu_dispatch.h \
   /usr/local/include/opencv4/opencv2/core/cvdef.h \
   /usr/local/include/opencv4/opencv2/core/cvstd.hpp \
@@ -1570,84 +1548,9 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: /home/dima/Projects/ThreeDL/engine/
   /usr/local/include/opencv4/opencv2/core/traits.hpp \
   /usr/local/include/opencv4/opencv2/core/types.hpp \
   /usr/local/include/opencv4/opencv2/core/utility.hpp \
-  /usr/local/include/opencv4/opencv2/core/utils/logger.defines.hpp \
-  /usr/local/include/opencv4/opencv2/core/utils/logger.hpp \
-  /usr/local/include/opencv4/opencv2/core/utils/logtag.hpp \
   /usr/local/include/opencv4/opencv2/core/version.hpp \
   /usr/local/include/opencv4/opencv2/core/vsx_utils.hpp \
-  /usr/local/include/opencv4/opencv2/dnn.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/dict.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/dnn.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/dnn.inl.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/layer.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/utils/inference_engine.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/version.hpp \
-  /usr/local/include/opencv4/opencv2/features2d.hpp \
-  /usr/local/include/opencv4/opencv2/flann.hpp \
-  /usr/local/include/opencv4/opencv2/flann/all_indices.h \
-  /usr/local/include/opencv4/opencv2/flann/allocator.h \
-  /usr/local/include/opencv4/opencv2/flann/any.h \
-  /usr/local/include/opencv4/opencv2/flann/autotuned_index.h \
-  /usr/local/include/opencv4/opencv2/flann/composite_index.h \
-  /usr/local/include/opencv4/opencv2/flann/config.h \
-  /usr/local/include/opencv4/opencv2/flann/defines.h \
-  /usr/local/include/opencv4/opencv2/flann/dist.h \
-  /usr/local/include/opencv4/opencv2/flann/dynamic_bitset.h \
-  /usr/local/include/opencv4/opencv2/flann/flann_base.hpp \
-  /usr/local/include/opencv4/opencv2/flann/general.h \
-  /usr/local/include/opencv4/opencv2/flann/ground_truth.h \
-  /usr/local/include/opencv4/opencv2/flann/heap.h \
-  /usr/local/include/opencv4/opencv2/flann/hierarchical_clustering_index.h \
-  /usr/local/include/opencv4/opencv2/flann/index_testing.h \
-  /usr/local/include/opencv4/opencv2/flann/kdtree_index.h \
-  /usr/local/include/opencv4/opencv2/flann/kdtree_single_index.h \
-  /usr/local/include/opencv4/opencv2/flann/kmeans_index.h \
-  /usr/local/include/opencv4/opencv2/flann/linear_index.h \
-  /usr/local/include/opencv4/opencv2/flann/logger.h \
-  /usr/local/include/opencv4/opencv2/flann/lsh_index.h \
-  /usr/local/include/opencv4/opencv2/flann/lsh_table.h \
-  /usr/local/include/opencv4/opencv2/flann/matrix.h \
-  /usr/local/include/opencv4/opencv2/flann/miniflann.hpp \
-  /usr/local/include/opencv4/opencv2/flann/nn_index.h \
-  /usr/local/include/opencv4/opencv2/flann/params.h \
-  /usr/local/include/opencv4/opencv2/flann/random.h \
-  /usr/local/include/opencv4/opencv2/flann/result_set.h \
-  /usr/local/include/opencv4/opencv2/flann/sampling.h \
-  /usr/local/include/opencv4/opencv2/flann/saving.h \
-  /usr/local/include/opencv4/opencv2/flann/timer.h \
-  /usr/local/include/opencv4/opencv2/highgui.hpp \
-  /usr/local/include/opencv4/opencv2/imgcodecs.hpp \
-  /usr/local/include/opencv4/opencv2/imgproc.hpp \
-  /usr/local/include/opencv4/opencv2/imgproc/segmentation.hpp \
-  /usr/local/include/opencv4/opencv2/ml.hpp \
-  /usr/local/include/opencv4/opencv2/ml/ml.inl.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/aruco_board.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/aruco_detector.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/aruco_dictionary.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/barcode.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/charuco_detector.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/face.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/graphical_code_detector.hpp \
-  /usr/local/include/opencv4/opencv2/opencv.hpp \
   /usr/local/include/opencv4/opencv2/opencv_modules.hpp \
-  /usr/local/include/opencv4/opencv2/photo.hpp \
-  /usr/local/include/opencv4/opencv2/stitching.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/blenders.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/camera.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/exposure_compensate.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/matchers.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/seam_finders.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/util.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/util_inl.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/warpers.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/warpers.hpp \
-  /usr/local/include/opencv4/opencv2/video.hpp \
-  /usr/local/include/opencv4/opencv2/video/background_segm.hpp \
-  /usr/local/include/opencv4/opencv2/video/tracking.hpp \
   /usr/local/include/opencv4/opencv2/videoio.hpp
 
 CMakeFiles/ThreeDL.dir/engine/vulkan/buffers.cpp.o: /home/dima/Projects/ThreeDL/engine/vulkan/buffers.cpp \
@@ -2485,7 +2388,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
-  /usr/include/c++/13/bits/deque.tcc \
   /usr/include/c++/13/bits/enable_special_members.h \
   /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
@@ -2501,7 +2403,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/include/c++/13/bits/ios_base.h \
   /usr/include/c++/13/bits/istream.tcc \
   /usr/include/c++/13/bits/iterator_concepts.h \
-  /usr/include/c++/13/bits/list.tcc \
   /usr/include/c++/13/bits/locale_classes.h \
   /usr/include/c++/13/bits/locale_classes.tcc \
   /usr/include/c++/13/bits/locale_conv.h \
@@ -2547,23 +2448,15 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/include/c++/13/bits/stl_algobase.h \
   /usr/include/c++/13/bits/stl_bvector.h \
   /usr/include/c++/13/bits/stl_construct.h \
-  /usr/include/c++/13/bits/stl_deque.h \
   /usr/include/c++/13/bits/stl_function.h \
   /usr/include/c++/13/bits/stl_heap.h \
   /usr/include/c++/13/bits/stl_iterator.h \
   /usr/include/c++/13/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/13/bits/stl_iterator_base_types.h \
-  /usr/include/c++/13/bits/stl_list.h \
-  /usr/include/c++/13/bits/stl_map.h \
-  /usr/include/c++/13/bits/stl_multimap.h \
-  /usr/include/c++/13/bits/stl_multiset.h \
   /usr/include/c++/13/bits/stl_pair.h \
-  /usr/include/c++/13/bits/stl_queue.h \
   /usr/include/c++/13/bits/stl_raw_storage_iter.h \
   /usr/include/c++/13/bits/stl_relops.h \
-  /usr/include/c++/13/bits/stl_set.h \
   /usr/include/c++/13/bits/stl_tempbuf.h \
-  /usr/include/c++/13/bits/stl_tree.h \
   /usr/include/c++/13/bits/stl_uninitialized.h \
   /usr/include/c++/13/bits/stl_vector.h \
   /usr/include/c++/13/bits/stream_iterator.h \
@@ -2602,7 +2495,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/include/c++/13/cwctype \
   /usr/include/c++/13/debug/assertions.h \
   /usr/include/c++/13/debug/debug.h \
-  /usr/include/c++/13/deque \
   /usr/include/c++/13/exception \
   /usr/include/c++/13/ext/aligned_buffer.h \
   /usr/include/c++/13/ext/alloc_traits.h \
@@ -2622,10 +2514,7 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/include/c++/13/istream \
   /usr/include/c++/13/iterator \
   /usr/include/c++/13/limits \
-  /usr/include/c++/13/list \
   /usr/include/c++/13/locale \
-  /usr/include/c++/13/map \
-  /usr/include/c++/13/math.h \
   /usr/include/c++/13/memory \
   /usr/include/c++/13/mutex \
   /usr/include/c++/13/new \
@@ -2636,11 +2525,9 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/include/c++/13/pstl/glue_algorithm_defs.h \
   /usr/include/c++/13/pstl/glue_memory_defs.h \
   /usr/include/c++/13/pstl/pstl_config.h \
-  /usr/include/c++/13/queue \
   /usr/include/c++/13/ranges \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/semaphore \
-  /usr/include/c++/13/set \
   /usr/include/c++/13/span \
   /usr/include/c++/13/sstream \
   /usr/include/c++/13/stdexcept \
@@ -2982,16 +2869,10 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/xmmintrin.h \
-  /usr/local/include/opencv4/opencv2/calib3d.hpp \
   /usr/local/include/opencv4/opencv2/core.hpp \
-  /usr/local/include/opencv4/opencv2/core/affine.hpp \
-  /usr/local/include/opencv4/opencv2/core/async.hpp \
   /usr/local/include/opencv4/opencv2/core/base.hpp \
   /usr/local/include/opencv4/opencv2/core/bufferpool.hpp \
   /usr/local/include/opencv4/opencv2/core/check.hpp \
-  /usr/local/include/opencv4/opencv2/core/cuda.hpp \
-  /usr/local/include/opencv4/opencv2/core/cuda.inl.hpp \
-  /usr/local/include/opencv4/opencv2/core/cuda_types.hpp \
   /usr/local/include/opencv4/opencv2/core/cv_cpu_dispatch.h \
   /usr/local/include/opencv4/opencv2/core/cvdef.h \
   /usr/local/include/opencv4/opencv2/core/cvstd.hpp \
@@ -3013,202 +2894,35 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
   /usr/local/include/opencv4/opencv2/core/traits.hpp \
   /usr/local/include/opencv4/opencv2/core/types.hpp \
   /usr/local/include/opencv4/opencv2/core/utility.hpp \
-  /usr/local/include/opencv4/opencv2/core/utils/logger.defines.hpp \
-  /usr/local/include/opencv4/opencv2/core/utils/logger.hpp \
-  /usr/local/include/opencv4/opencv2/core/utils/logtag.hpp \
   /usr/local/include/opencv4/opencv2/core/version.hpp \
   /usr/local/include/opencv4/opencv2/core/vsx_utils.hpp \
-  /usr/local/include/opencv4/opencv2/dnn.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/dict.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/dnn.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/dnn.inl.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/layer.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/utils/inference_engine.hpp \
-  /usr/local/include/opencv4/opencv2/dnn/version.hpp \
-  /usr/local/include/opencv4/opencv2/features2d.hpp \
-  /usr/local/include/opencv4/opencv2/flann.hpp \
-  /usr/local/include/opencv4/opencv2/flann/all_indices.h \
-  /usr/local/include/opencv4/opencv2/flann/allocator.h \
-  /usr/local/include/opencv4/opencv2/flann/any.h \
-  /usr/local/include/opencv4/opencv2/flann/autotuned_index.h \
-  /usr/local/include/opencv4/opencv2/flann/composite_index.h \
-  /usr/local/include/opencv4/opencv2/flann/config.h \
-  /usr/local/include/opencv4/opencv2/flann/defines.h \
-  /usr/local/include/opencv4/opencv2/flann/dist.h \
-  /usr/local/include/opencv4/opencv2/flann/dynamic_bitset.h \
-  /usr/local/include/opencv4/opencv2/flann/flann_base.hpp \
-  /usr/local/include/opencv4/opencv2/flann/general.h \
-  /usr/local/include/opencv4/opencv2/flann/ground_truth.h \
-  /usr/local/include/opencv4/opencv2/flann/heap.h \
-  /usr/local/include/opencv4/opencv2/flann/hierarchical_clustering_index.h \
-  /usr/local/include/opencv4/opencv2/flann/index_testing.h \
-  /usr/local/include/opencv4/opencv2/flann/kdtree_index.h \
-  /usr/local/include/opencv4/opencv2/flann/kdtree_single_index.h \
-  /usr/local/include/opencv4/opencv2/flann/kmeans_index.h \
-  /usr/local/include/opencv4/opencv2/flann/linear_index.h \
-  /usr/local/include/opencv4/opencv2/flann/logger.h \
-  /usr/local/include/opencv4/opencv2/flann/lsh_index.h \
-  /usr/local/include/opencv4/opencv2/flann/lsh_table.h \
-  /usr/local/include/opencv4/opencv2/flann/matrix.h \
-  /usr/local/include/opencv4/opencv2/flann/miniflann.hpp \
-  /usr/local/include/opencv4/opencv2/flann/nn_index.h \
-  /usr/local/include/opencv4/opencv2/flann/params.h \
-  /usr/local/include/opencv4/opencv2/flann/random.h \
-  /usr/local/include/opencv4/opencv2/flann/result_set.h \
-  /usr/local/include/opencv4/opencv2/flann/sampling.h \
-  /usr/local/include/opencv4/opencv2/flann/saving.h \
-  /usr/local/include/opencv4/opencv2/flann/timer.h \
-  /usr/local/include/opencv4/opencv2/highgui.hpp \
-  /usr/local/include/opencv4/opencv2/imgcodecs.hpp \
-  /usr/local/include/opencv4/opencv2/imgproc.hpp \
-  /usr/local/include/opencv4/opencv2/imgproc/segmentation.hpp \
-  /usr/local/include/opencv4/opencv2/ml.hpp \
-  /usr/local/include/opencv4/opencv2/ml/ml.inl.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/aruco_board.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/aruco_detector.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/aruco_dictionary.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/barcode.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/charuco_detector.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/face.hpp \
-  /usr/local/include/opencv4/opencv2/objdetect/graphical_code_detector.hpp \
-  /usr/local/include/opencv4/opencv2/opencv.hpp \
   /usr/local/include/opencv4/opencv2/opencv_modules.hpp \
-  /usr/local/include/opencv4/opencv2/photo.hpp \
-  /usr/local/include/opencv4/opencv2/stitching.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/blenders.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/camera.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/exposure_compensate.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/matchers.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/seam_finders.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/util.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/util_inl.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/warpers.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp \
-  /usr/local/include/opencv4/opencv2/stitching/warpers.hpp \
-  /usr/local/include/opencv4/opencv2/video.hpp \
-  /usr/local/include/opencv4/opencv2/video/background_segm.hpp \
-  /usr/local/include/opencv4/opencv2/video/tracking.hpp \
   /usr/local/include/opencv4/opencv2/videoio.hpp
 
 
 /home/dima/Projects/ThreeDL/main.cpp:
 
-/usr/local/include/opencv4/opencv2/video/background_segm.hpp:
-
-/usr/local/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp:
-
-/usr/local/include/opencv4/opencv2/stitching/detail/warpers.hpp:
-
-/usr/local/include/opencv4/opencv2/stitching/detail/seam_finders.hpp:
-
-/usr/local/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp:
-
-/usr/local/include/opencv4/opencv2/stitching/detail/matchers.hpp:
-
-/usr/local/include/opencv4/opencv2/stitching/detail/exposure_compensate.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect/graphical_code_detector.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect/charuco_detector.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect/aruco_dictionary.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect/aruco_detector.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect.hpp:
-
-/usr/local/include/opencv4/opencv2/flann/sampling.h:
-
-/usr/local/include/opencv4/opencv2/flann/result_set.h:
-
-/usr/local/include/opencv4/opencv2/flann/random.h:
-
-/usr/local/include/opencv4/opencv2/flann/miniflann.hpp:
-
-/usr/local/include/opencv4/opencv2/flann/matrix.h:
-
-/usr/local/include/opencv4/opencv2/flann/lsh_table.h:
-
-/usr/local/include/opencv4/opencv2/flann/logger.h:
-
-/usr/local/include/opencv4/opencv2/flann/kdtree_single_index.h:
-
-/usr/local/include/opencv4/opencv2/flann/kdtree_index.h:
-
-/usr/local/include/opencv4/opencv2/flann/index_testing.h:
-
-/usr/local/include/opencv4/opencv2/flann/ground_truth.h:
-
-/usr/local/include/opencv4/opencv2/flann/general.h:
-
-/usr/local/include/opencv4/opencv2/flann/composite_index.h:
-
-/usr/local/include/opencv4/opencv2/flann/autotuned_index.h:
-
-/usr/local/include/opencv4/opencv2/flann/any.h:
-
-/usr/local/include/opencv4/opencv2/flann/allocator.h:
-
-/usr/local/include/opencv4/opencv2/flann.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect/face.hpp:
-
-/usr/local/include/opencv4/opencv2/features2d.hpp:
-
-/usr/local/include/opencv4/opencv2/dnn/utils/inference_engine.hpp:
-
-/usr/local/include/opencv4/opencv2/dnn/layer.hpp:
-
-/usr/local/include/opencv4/opencv2/dnn/dnn.hpp:
-
-/usr/local/include/opencv4/opencv2/dnn/dict.hpp:
-
-/usr/local/include/opencv4/opencv2/dnn.hpp:
-
-/usr/local/include/opencv4/opencv2/core/utils/logger.defines.hpp:
-
-/usr/local/include/opencv4/opencv2/core/async.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/semaphore.h:
-
-/usr/include/semaphore.h:
-
-/usr/include/c++/13/stop_token:
-
 /usr/include/c++/13/set:
-
-/usr/include/c++/13/queue:
-
-/usr/include/c++/13/thread:
-
-/usr/include/c++/13/list:
-
-/usr/include/c++/13/iomanip:
-
-/usr/include/c++/13/deque:
-
-/usr/include/c++/13/chrono:
 
 /usr/include/c++/13/bits/stl_tree.h:
 
 /usr/include/c++/13/bits/stl_multiset.h:
 
-/usr/include/c++/13/bits/stl_multimap.h:
+/usr/include/x86_64-linux-gnu/bits/semaphore.h:
 
-/usr/include/c++/13/bits/stl_list.h:
+/usr/include/semaphore.h:
+
+/usr/include/c++/13/thread:
+
+/usr/include/c++/13/stop_token:
+
+/usr/include/c++/13/iomanip:
+
+/usr/include/c++/13/chrono:
 
 /usr/include/c++/13/bits/semaphore_base.h:
 
 /usr/include/c++/13/bits/quoted_string.h:
-
-/usr/include/c++/13/bits/list.tcc:
-
-/usr/local/include/opencv4/opencv2/photo.hpp:
-
-/usr/include/c++/13/bits/deque.tcc:
 
 /usr/include/c++/13/bits/atomic_timed_wait.h:
 
@@ -3230,15 +2944,11 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/dl_find_object.h:
 
-/usr/local/include/opencv4/opencv2/opencv.hpp:
-
 /usr/include/vulkan/vulkan_to_string.hpp:
 
 /usr/include/vulkan/vulkan_hpp_macros.hpp:
 
 /usr/include/vulkan/vulkan_handles.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp:
 
 /usr/include/vulkan/vulkan_funcs.hpp:
 
@@ -3262,8 +2972,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/typeindex:
 
-/usr/include/c++/13/map:
-
 /usr/include/c++/13/span:
 
 /usr/include/c++/13/iterator:
@@ -3284,8 +2992,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/bits/unique_lock.h:
 
-/usr/local/include/opencv4/opencv2/calib3d.hpp:
-
 /usr/include/c++/13/bits/stream_iterator.h:
 
 /usr/include/c++/13/bits/parse_numbers.h:
@@ -3295,8 +3001,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/bits/locale_facets_nonio.tcc:
 
 /usr/include/c++/13/bits/locale_facets_nonio.h:
-
-/usr/local/include/opencv4/opencv2/ml/ml.inl.hpp:
 
 /usr/include/c++/13/atomic:
 
@@ -3348,8 +3052,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/emmintrin.h:
 
-/usr/local/include/opencv4/opencv2/flann/flann_base.hpp:
-
 /usr/include/x86_64-linux-gnu/sys/syscall.h:
 
 /usr/include/x86_64-linux-gnu/sys/single_threaded.h:
@@ -3357,8 +3059,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/x86_64-linux-gnu/sys/select.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
-
-/usr/local/include/opencv4/opencv2/video/tracking.hpp:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h:
 
@@ -3371,8 +3071,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h:
 
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
-
-/usr/local/include/opencv4/opencv2/core/utils/logger.hpp:
 
 /usr/include/glm/gtc/matrix_transform.inl:
 
@@ -3402,10 +3100,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
-/usr/local/include/opencv4/opencv2/stitching/detail/util_inl.hpp:
-
-/usr/local/include/opencv4/opencv2/objdetect/aruco_board.hpp:
-
 /usr/include/vulkan/vulkan.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
@@ -3425,8 +3119,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/local/include/opencv4/opencv2/core/check.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/timex.h:
-
-/usr/local/include/opencv4/opencv2/flann/defines.h:
 
 /usr/include/x86_64-linux-gnu/bits/timesize.h:
 
@@ -3486,8 +3178,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
-/usr/local/include/opencv4/opencv2/flann/linear_index.h:
-
 /usr/include/c++/13/bits/codecvt.h:
 
 /usr/include/x86_64-linux-gnu/bits/floatn.h:
@@ -3506,8 +3196,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/cpu-set.h:
 
-/usr/local/include/opencv4/opencv2/core/utils/logtag.hpp:
-
 /usr/include/x86_64-linux-gnu/c++/13/bits/gthr.h:
 
 /usr/include/x86_64-linux-gnu/bits/confname.h:
@@ -3521,8 +3209,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
 
 /usr/include/glm/ext/matrix_double2x2_precision.hpp:
-
-/usr/include/c++/13/bits/stl_queue.h:
 
 /usr/include/c++/13/typeinfo:
 
@@ -3543,8 +3229,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h:
 
 /usr/include/c++/13/tr1/bessel_function.tcc:
-
-/usr/local/include/opencv4/opencv2/flann/dynamic_bitset.h:
 
 /usr/include/vk_video/vulkan_video_codec_h264std_encode.h:
 
@@ -3569,8 +3253,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/numbers:
 
 /usr/include/c++/13/bits/postypes.h:
-
-/usr/local/include/opencv4/opencv2/flann/dist.h:
 
 /usr/include/c++/13/ext/concurrence.h:
 
@@ -3656,17 +3338,11 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/ext/numeric_traits.h:
 
-/usr/local/include/opencv4/opencv2/flann/hierarchical_clustering_index.h:
-
 /usr/include/c++/13/bits/concept_check.h:
-
-/usr/local/include/opencv4/opencv2/core/cuda_types.hpp:
 
 /usr/include/c++/13/ranges:
 
 /home/dima/Projects/ThreeDL/engine/camera.cpp:
-
-/usr/local/include/opencv4/opencv2/stitching/warpers.hpp:
 
 /usr/include/assert.h:
 
@@ -3748,8 +3424,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/bits/atomic_wait.h:
 
-/usr/local/include/opencv4/opencv2/stitching/detail/util.hpp:
-
 /usr/include/glm/ext/vector_uint3_sized.hpp:
 
 /usr/include/c++/13/bits/algorithmfwd.h:
@@ -3790,8 +3464,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/bits/memoryfwd.h:
 
-/usr/local/include/opencv4/opencv2/video.hpp:
-
 /usr/include/math.h:
 
 /home/dima/Projects/ThreeDL/engine/types.hpp:
@@ -3828,8 +3500,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/ext/aligned_buffer.h:
 
-/usr/local/include/opencv4/opencv2/flann/lsh_index.h:
-
 /home/dima/Projects/ThreeDL/engine/camera.hpp:
 
 /usr/include/c++/13/bits/cxxabi_forced.h:
@@ -3854,8 +3524,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/ext/matrix_double4x3_precision.hpp:
 
-/usr/local/include/opencv4/opencv2/core/affine.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/long-double.h:
 
 /usr/include/glm/ext/matrix_clip_space.hpp:
@@ -3863,8 +3531,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/glm/ext/scalar_constants.hpp:
 
 /usr/include/glm/ext/vector_float2_precision.hpp:
-
-/usr/local/include/opencv4/opencv2/flann/all_indices.h:
 
 /usr/include/c++/13/bit:
 
@@ -3892,8 +3558,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/bits/locale_classes.h:
 
-/usr/local/include/opencv4/opencv2/stitching/detail/blenders.hpp:
-
 /usr/include/glm/integer.hpp:
 
 /usr/include/c++/13/bits/hash_bytes.h:
@@ -3920,8 +3584,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/memory:
 
-/usr/local/include/opencv4/opencv2/flann/heap.h:
-
 /usr/include/c++/13/bits/shared_ptr.h:
 
 /usr/include/glm/exponential.hpp:
@@ -3934,13 +3596,9 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/bits/functexcept.h:
 
-/usr/local/include/opencv4/opencv2/flann/nn_index.h:
-
 /usr/include/c++/13/bits/ios_base.h:
 
 /usr/include/c++/13/backward/auto_ptr.h:
-
-/usr/local/include/opencv4/opencv2/ml.hpp:
 
 /usr/include/c++/13/bits/erase_if.h:
 
@@ -3963,8 +3621,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/glm/gtc/matrix_transform.hpp:
 
 /usr/include/c++/13/bits/localefwd.h:
-
-/usr/local/include/opencv4/opencv2/flann/timer.h:
 
 /usr/include/glm/detail/type_mat2x3.hpp:
 
@@ -4004,8 +3660,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/stdc-predef.h:
 
-/usr/local/include/opencv4/opencv2/stitching/detail/camera.hpp:
-
 /usr/include/c++/13/tr1/legendre_function.tcc:
 
 /usr/include/c++/13/pstl/pstl_config.h:
@@ -4013,8 +3667,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/bits/shared_ptr_atomic.h:
 
 /usr/include/c++/13/bits/ranges_algobase.h:
-
-/usr/local/include/opencv4/opencv2/flann/config.h:
 
 /usr/include/glm/ext/matrix_clip_space.inl:
 
@@ -4052,15 +3704,11 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/system_error:
 
-/usr/local/include/opencv4/opencv2/core/cuda.inl.hpp:
-
 /usr/include/c++/13/bits/chrono_io.h:
 
 /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
 
 /usr/include/c++/13/algorithm:
-
-/usr/local/include/opencv4/opencv2/highgui.hpp:
 
 /usr/include/glm/mat4x4.hpp:
 
@@ -4079,8 +3727,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
 
 /usr/include/glm/detail/compute_vector_relational.hpp:
-
-/usr/local/include/opencv4/opencv2/dnn/dnn.inl.hpp:
 
 /usr/include/glm/detail/type_half.hpp:
 
@@ -4198,19 +3844,13 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/ext/matrix_double3x4.hpp:
 
-/usr/local/include/opencv4/opencv2/objdetect/barcode.hpp:
-
 /usr/local/include/opencv4/opencv2/core/types.hpp:
 
 /usr/include/glm/ext/scalar_constants.inl:
 
-/usr/local/include/opencv4/opencv2/flann/saving.h:
-
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
 /usr/include/stdlib.h:
-
-/usr/local/include/opencv4/opencv2/flann/kmeans_index.h:
 
 /usr/include/glm/ext/matrix_double3x4_precision.hpp:
 
@@ -4233,8 +3873,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/glm/detail/type_mat4x4.inl:
 
 /usr/include/glm/ext/matrix_float2x3.hpp:
-
-/usr/local/include/opencv4/opencv2/stitching.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/byteswap.h:
 
@@ -4276,8 +3914,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/ext/vector_double2.hpp:
 
-/usr/local/include/opencv4/opencv2/imgcodecs.hpp:
-
 /usr/include/glm/ext/vector_double3.hpp:
 
 /usr/include/glm/ext/vector_double3_precision.hpp:
@@ -4314,8 +3950,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/fwd.hpp:
 
-/usr/local/include/opencv4/opencv2/flann/params.h:
-
 /usr/include/c++/13/bits/unordered_map.h:
 
 /usr/include/time.h:
@@ -4327,8 +3961,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/glm/ext/matrix_float3x4.hpp:
 
 /usr/include/glm/glm.hpp:
-
-/usr/local/include/opencv4/opencv2/dnn/version.hpp:
 
 /usr/include/glm/gtc/constants.hpp:
 
@@ -4346,8 +3978,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/mat3x3.hpp:
 
-/usr/include/c++/13/bits/stl_deque.h:
-
 /usr/include/glm/mat4x3.hpp:
 
 /usr/include/c++/13/bits/stl_raw_storage_iter.h:
@@ -4356,13 +3986,9 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/vec2.hpp:
 
-/usr/local/include/opencv4/opencv2/core/cuda.hpp:
-
 /usr/include/c++/13/bits/invoke.h:
 
 /usr/include/x86_64-linux-gnu/asm/unistd.h:
-
-/usr/include/c++/13/bits/stl_map.h:
 
 /usr/include/glm/trigonometric.hpp:
 

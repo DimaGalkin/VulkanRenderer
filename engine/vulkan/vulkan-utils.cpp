@@ -112,7 +112,7 @@ void tdl::Vlkn::newFrame(
         ) != vk::Result::eSuccess
     ) throw std::runtime_error("ERR 30: Failed to wait for fences. Vlkn::newFrame(...)");
 
-    uint32_t idx;
+    uint32_t idx = 0;
     try {
         const vk::ResultValue result = device_.acquireNextImageKHR(
             swapchain_,
@@ -244,7 +244,8 @@ void tdl::Vlkn::cleanup() {
 }
 
 void tdl::Vlkn::recreateSwapchain() {
-    int width = 0; int height = 0;
+    int width = 0;
+    int height = 0;
     while (width == 0 || height == 0) {
         glfwGetFramebufferSize(info_->window_, &width, &height);
         glfwWaitEvents();
@@ -322,8 +323,8 @@ void tdl::Vlkn::createLogicalDevice() {
         info_group.emplace_back( vk::DeviceQueueCreateFlags {}, family, 1, &priority);
     }
 
-    static constexpr vk::PhysicalDeviceFeatures features = {};
-    const vk::DeviceCreateInfo device_info = {
+    static constexpr vk::PhysicalDeviceFeatures features {};
+    const vk::DeviceCreateInfo device_info {
         {},
         static_cast<uint32_t>(info_group.size()), info_group.data(),
         0, nullptr,
@@ -766,7 +767,7 @@ void tdl::Vlkn::createGraphicsPipeline() {
 
     const vk::DescriptorSetLayout layouts[] = { ubo_layout_, texture_layout_, object_layout_, model_layout_ };
 
-    vk::PipelineLayoutCreateInfo pipe_info { // NOLINT (not a constant expression)
+    const vk::PipelineLayoutCreateInfo pipe_info { // NOLINT (not a constant expression)
         {},
         std::size(layouts),
         layouts
