@@ -19,7 +19,6 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
-#include <memory>
 #include <optional>
 #include <string>
 
@@ -71,16 +70,22 @@ namespace tdl {
 
     class Vlkn {
         public:
-            explicit Vlkn(RendererInfo* const renderer_info)
-                : info_ { renderer_info },
-                  mem_vert_ { nullptr },
-                  format_ { vk::Format::eUndefined }
+            explicit Vlkn (
+                RendererInfo* const renderer_info
+            ) : info_ { renderer_info },
+                mem_vert_ { nullptr },
+                format_ { vk::Format::eUndefined }
             {}
 
             void init();
 
-            void add(const shared_model<Model>& object) { objects_.push_back(object); }
-            void newFrame(const UniformBufferObject& ubo);
+            void add (
+                const shared_model<Model>& object
+            ) { objects_.push_back(object); }
+
+            void newFrame (
+                const UniformBufferObject& ubo
+            );
 
             ~Vlkn() {
                 cleanup();
@@ -138,7 +143,11 @@ namespace tdl {
             size_t current_frame_ = 0;
             int max_f_frames_ = 2;
 
-            void submitForDraw(const vk::CommandBuffer& buffer, uint32_t idx);
+            void submitForDraw (
+                const vk::CommandBuffer& buffer,
+                uint32_t idx
+            );
+
             void cleanupSwapchain();
             void cleanup();
             void recreateSwapchain();
@@ -160,18 +169,47 @@ namespace tdl {
             void createUniformBuffers();
             void createDescriptorPool();
             void createDescriptorSets();
-            void regenUBOs(const UniformBufferObject& ubo) const;
+
+            void regenUBOs (
+                const UniformBufferObject& ubo
+            ) const;
 
             static std::vector<const char*> getRequiredExtensions();
-            static std::vector<char> readFile(const std::string& filename);
-            static bool checkDeviceExtensionSupport(const vk::PhysicalDevice& device);
-            static vk::SurfaceFormatKHR chooseFormat(const std::vector<vk::SurfaceFormatKHR>& available_formats);
-            static vk::PresentModeKHR chooseMode(const std::vector<vk::PresentModeKHR>& available_modes);
 
-            [[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::vector<char>& code) const;
-            [[nodiscard]] vk::Extent2D chooseExtent(const vk::SurfaceCapabilitiesKHR& capabilities) const;
-            [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const;
-            [[nodiscard]] bool isDeviceSuitable(const vk::PhysicalDevice& device) const;
-            [[nodiscard]] GraphicsPresentInfo findQueueFamilies(const vk::PhysicalDevice& device) const;
+            static std::vector<char> readFile (
+                const std::string& filename
+            );
+
+            static bool checkDeviceExtensionSupport (
+                const vk::PhysicalDevice& device
+            );
+
+            static vk::SurfaceFormatKHR chooseFormat (
+                const std::vector<vk::SurfaceFormatKHR>& available_formats
+            );
+
+            static vk::PresentModeKHR chooseMode (
+                const std::vector<vk::PresentModeKHR>& available_modes
+            );
+
+            [[nodiscard]] vk::UniqueShaderModule createShaderModule (
+                const std::vector<char>& code
+            ) const;
+
+            [[nodiscard]] vk::Extent2D chooseExtent (
+                const vk::SurfaceCapabilitiesKHR& capabilities
+            ) const;
+
+            [[nodiscard]] SwapChainSupportDetails querySwapChainSupport (
+                const vk::PhysicalDevice& device
+            ) const;
+
+            [[nodiscard]] bool isDeviceSuitable (
+                const vk::PhysicalDevice& device
+            ) const;
+
+            [[nodiscard]] GraphicsPresentInfo findQueueFamilies (
+                const vk::PhysicalDevice& device
+            ) const;
     };
 };

@@ -793,6 +793,20 @@ namespace tdl {
             friend class shared_model<Model>;
 
             /**
+             * @breif Copies mesh data from another Model
+             *
+             * @param objects other models mesh data
+            */
+            explicit Model (
+                const std::vector<std::pair<std::string, std::shared_ptr<ObjectInterface>>>& objects
+            ) : objects_ { objects },
+                centre_ {}
+            {
+                caluclateCentre();
+                keys_ = getKeys();
+            }
+
+            /**
              * @breif Loads a model from OBJ file and material data from the MTL file
              *
              * Path to the MTL file is not explicitly given but read from the usemtl line in the OBJ file
@@ -808,16 +822,14 @@ namespace tdl {
                 keys_ = getKeys();
             }
 
-            explicit Model (
-                const std::vector<std::pair<std::string, std::shared_ptr<ObjectInterface>>>& objects
-            ) : objects_ { objects },
-                centre_ {}
-            {
-                caluclateCentre();
-                keys_ = getKeys();
-            }
-
-            // loads model and textures it with given image
+            /**
+             * @breif Loads a model from OBJ file and textures it with image / video at given file
+             *
+             * Any MTL data found is disregarded and default material is applied to every object
+             *
+             * @param path path to the OBJ file
+             * @param tex_path path to texture file
+            */
             Model (
                 const std::string& path,
                 const std::string& tex_path
@@ -828,7 +840,14 @@ namespace tdl {
                 keys_ = getKeys();
             }
 
-            // loads model and gives it color
+            /**
+             * @breif Loads a model from OBJ file and applies the given color to it
+             *
+             * Any MTL data found is disregarded and default material is applied to every object
+             *
+             * @param path path to the OBJ file
+             * @param color color to apply
+            */
             Model (
                 const std::string& path,
                 const std::array<unsigned char, 4>& color
@@ -839,21 +858,48 @@ namespace tdl {
                 keys_ = getKeys();
             }
 
+            /**
+             * @breif Rotates model around given centre
+             *
+             * @param angles XYZ euler angles to rotate by
+             * @param centre centre of rotation
+            */
             void rotate (
                 const glm::vec3& angles,
                 const glm::vec3& centre
             );
 
+            /**
+             * @breif Rotates model around its centre
+             *
+             * @param angles XYZ euler angles to rotate by
+            */
             void rotate (
                 const glm::vec3& angles
             );
 
+            /**
+             * @breif Translates the model by the given amount of units in the XYZ directions
+             *
+             * @param val XYZ values of translation
+            */
             void translate (
                 const glm::vec3& val
             );
 
+            /**
+             * @breif Extracts all objects with given name into a seperate Model
+             *
+             * @param name name of object to extract
+             * @return shared_model<Model> which contains all wanted objects
+            */
             shared_model<Model> operator[] (const std::string& name) const;
 
+            /**
+             * @breif Gets the names of all the objects contained by the Model
+             *
+             * @return std::vector<std::string> of all names
+            */
             [[nodiscard]] std::vector<std::string> getKeys() const;
 
             ~Model() {
@@ -862,9 +908,32 @@ namespace tdl {
                 }
             }
         private:
+            /**
+             * @breif Calls imageTick() of all child objects
+             *
+             * Tells child objects to load current cv::VideoCapture frame into a vk::Image so the model can be textured
+             * with the new frame (only for video textures)
+            */
             void imageTick();
+
+            /**
+             * @breif Calls frameTick() of all child objects
+             *
+             * Tells child objects to load next frame from cv::VideoCapture so it can be converted into a vk::Image
+             * later by imageTick()
+            */
             void frameTick();
 
+            /**
+             * @breif Tells child objects to load their textures
+             *
+             * @param device GPU currently in use (logical)
+             * @param graphics_queue vk::Queue
+             * @param command_pool command pool used to allocate command buffers
+             * @param p_device GPU currently in use (physical)
+             * @param layout layout of bindings
+             * @param descriptor_pool pool used to allocate descriptor sets
+            */
             void loadTexture (
                 vk::Device device,
                 vk::Queue graphics_queue,
@@ -874,20 +943,44 @@ namespace tdl {
                 vk::DescriptorPool descriptor_pool
             ) const;
 
-            void loadMesh(
+            /**
+             * @breif Tells all children objects to init their buffers
+             *
+             * @param device GPU currently in use (logical)
+             * @param graphics_queue vk::Queue
+             * @param command_pool pool used to allocate command buffers
+             * @param p_device GPU currently in use (physical)
+            */
+            void loadMesh (
                 vk::Device device,
                 vk::Queue graphics_queue,
                 vk::CommandPool command_pool,
                 vk::PhysicalDevice p_device
             );
 
-            void render(
+            /**
+             * @breif Tells all children objects to bind their models and textures to the given command buffer
+             *
+             * @param command_buffer command buffer used to bind models and textures
+             * @param pipeline_layout layout of bindings in pipeline
+             * @param cframe number of prerendered frame
+            */
+            void render (
                 vk::CommandBuffer command_buffer,
                 vk::PipelineLayout pipeline_layout,
                 unsigned long cframe
             );
 
-            void initUBOs(
+            /**
+             * @breif Allocates memory buffers which store UBO data
+             *
+             * @param max_f_frames number of pre-rendered frames
+             * @param device GPU currently in use (logical)
+             * @param graphics_queue vk::Queue
+             * @param command_pool command pool used to allocate command buffers
+             * @param physical_device GPU currently in use (physical)
+            */
+            void initUBOs (
                 unsigned int max_f_frames,
                 vk::Device device,
                 vk::Queue graphics_queue,
@@ -895,7 +988,16 @@ namespace tdl {
                 vk::PhysicalDevice physical_device
             );
 
-            void createDescriptorSets(
+            /**
+             * @breif Creates required number of descriptor sets for UBOs, models and textures
+             *
+             * @param max_f_frames max number of pre-rendered frames
+             * @param descriptor_pool pool used to allocate descriptor sets
+             * @param device GPU currently in use (logical)
+             * @param model_layout layout of model UBO
+             * @param object_layout layout of object UBO
+            */
+            void createDescriptorSets (
                 unsigned int max_f_frames,
                 vk::DescriptorPool descriptor_pool,
                 vk::Device device,
@@ -903,6 +1005,9 @@ namespace tdl {
                 vk::DescriptorSetLayout object_layout
             );
 
+            /**
+             * @breif Calculates centre of all child objects and subsequently itself
+            */
             void caluclateCentre();
 
             std::vector<std::pair<std::string, std::shared_ptr<ObjectInterface>>> objects_;
@@ -916,6 +1021,14 @@ namespace tdl {
             bool has_changed_ = true;
     };
 
+    /**
+     * @breif creates a type of shared_model
+     *
+     * Creates a shared_model<Model> (std::shared_ptr) with given arguments
+     *
+     * @tparam Args arguments that need to be passed to Model ctor
+     * @return shared_model<Model>
+     */
     template <typename... Args>
     shared_model<Model> make_model (
         Args... args
