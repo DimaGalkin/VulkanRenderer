@@ -70,6 +70,7 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
     size_t currrent_mtl = -1; // Material to apply to current object
 
     std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
     std::vector<glm::vec2> uvs;
     std::vector<Vertex> verts;
     size_t start = 0; // start of slice of current object in the verts vector
@@ -145,19 +146,19 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
 
             verts.push_back({
                 vertices[std::stoi(v1[0]) - 1],
-                {1.0f, 1.0f, 1.0f},
+                normals[std::stoi(v1[2]) - 1],
                 (valid_uvs) ? uvs[std::stoi(v1[1]) - 1] : glm::vec3(0)
             });
 
             verts.push_back({
                 vertices[std::stoi(v2[0]) - 1],
-                {1.0f, 1.0f, 1.0f},
+                normals[std::stoi(v2[2]) - 1],
                 (valid_uvs) ? uvs[std::stoi(v2[1]) - 1] : glm::vec3(0)
             });
 
             verts.push_back({
                 vertices[std::stoi(v3[0]) - 1],
-                {1.0f, 1.0f, 1.0f},
+                normals[std::stoi(v3[2]) - 1],
                 (valid_uvs) ? uvs[std::stoi(v3[1]) - 1] : glm::vec3(0)
             });
         } else if (tokens[0] == "vt") {
@@ -165,6 +166,12 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
             uvs.emplace_back(
                 std::stof(tokens[1]),
                 1 - std::stof(tokens[2])
+            );
+        } else if (tokens[0] == "vn") {
+            normals.emplace_back(
+                std::stof(tokens[1]),
+                -std::stof(tokens[2]),
+                std::stof(tokens[3])
             );
         }
     }
@@ -751,11 +758,6 @@ void tdl::Model::render(
     const vk::PipelineLayout pipeline_layout,
     const unsigned long cframe
 ) {
-    // bind all object UBOs
-    for (const auto &obj: objects_ | std::views::values) {
-        obj->render(command_buffer, pipeline_layout, cframe);
-    }
-
     // bind model UBO
     command_buffer.bindDescriptorSets(
             vk::PipelineBindPoint::eGraphics,
@@ -766,6 +768,11 @@ void tdl::Model::render(
             0,
             nullptr
     );
+
+    // bind all object UBOs
+    for (const auto &obj: objects_ | std::views::values) {
+        obj->render(command_buffer, pipeline_layout, cframe);
+    }
 }
 
 void tdl::Model::initUBOs(

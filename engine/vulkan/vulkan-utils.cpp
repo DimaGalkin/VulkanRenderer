@@ -696,7 +696,7 @@ void tdl::Vlkn::createGraphicsPipeline() {
         VK_FALSE
     };
 
-    const vk::Viewport viewport = {
+    const vk::Viewport viewport {
         0.0f, 0.0f,
         static_cast<float>(extent_.width),
         static_cast<float>(extent_.height),
