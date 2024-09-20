@@ -67,7 +67,7 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
     bool first = true;
 
     std::vector<Material>  materials;
-    size_t currrent_mtl = -1; // Material to apply to current object
+    size_t currrent_mtl = 0; // Material to apply to current object
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
@@ -81,8 +81,10 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
         throw std::runtime_error("ERR 015: Failed to open OBJ file with path: " + path);
     }
 
-    for (std::string line; std::getline(file, line);) {
+    for (std::string line_raw; std::getline(file, line_raw);) {
         // in OBJ files tokens are seperated by a space
+        auto line_filter = line_raw | std::views::filter([](const char c){ return std::isprint(c); });
+        std::string line = std::string(line_filter.begin(), line_filter.end());
         const std::vector<std::string> tokens = split(line, ' ');
 
         if(tokens.empty()) continue; // no processing required for blank lines
@@ -95,7 +97,7 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
         }
 
         if (tokens[0] == "usemtl") {
-            if (!first) {
+            if (!first && start < verts.size()) {
                 // take a slice of all the vertcies that the current material is applied to
                 std::vector<Vertex> slice (&verts.at(start), &verts.back() + 1);
                 auto mesh = std::make_shared<Mesh>(slice);
@@ -123,7 +125,11 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
         }
 
         if (tokens[0] == "o") {
-            obj_name = tokens[1]; // objects specifies the name of the current group of vertices
+            if (tokens.size() > 1) {
+                obj_name = tokens[1]; // objects specifies the name of the current group of vertices
+            } else {
+                obj_name = "";
+            }
         }
 
         if (tokens[0] == "v") {
@@ -280,7 +286,9 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
         throw std::runtime_error("ERR 015: Failed to open OBJ file with path: " + path);
     }
 
-    for (std::string line; std::getline(file, line);) {
+    for (std::string line_raw; std::getline(file, line_raw);) {
+        auto line_filter = line_raw | std::views::filter([](const char c){ return std::isprint(c); });
+        std::string line = std::string(line_filter.begin(), line_filter.end());
         const std::vector<std::string> tokens = split(line, ' ');
 
         if (tokens[0] == "v") {
@@ -361,13 +369,30 @@ std::vector<tdl::Material> tdl::OBJLoader::loadMTL(
             }
             first = false; // add new materials for all subsequent calls
 
-            material.name = tokens[1]; // newmtl provides name of material
+            std::string printable;
+            for (const char ch : tokens[1] | std::views::filter([](const char c){ return std::isprint(c); })) {
+                printable += ch;
+            }
+            material.name = printable; // newmtl provides name of material
         } else if (tokens[0] == "map_Kd") {
             material.diffuse_is_map = true; // map_ specifies this is image
-            material.diffuse_map_path = getMTLPath(tokens[1], path); // path to image
+
+            std::string printable;
+            for (const char ch : tokens[1] | std::views::filter([](const char c){ return std::isprint(c); })) {
+                printable += ch;
+            }
+            material.diffuse_map_path = getMTLPath(printable, path); // path to image
         } else if (tokens[0] == "Kd") {
             // no map_ means this is a single colour
             material.diffuse = glm::vec3(
+                std::stof(tokens[1]),
+                std::stof(tokens[2]),
+                std::stof(tokens[3])
+            );
+        } else if (tokens[0] == "Ns") {
+            material.specular_exponent = std::stof(tokens[1]);
+        } else if (tokens[0] == "Ka") {
+            material.ambient = glm::vec3(
                 std::stof(tokens[1]),
                 std::stof(tokens[2]),
                 std::stof(tokens[3])
@@ -446,8 +471,10 @@ void tdl::Texture::load(
     const vk::CommandPool command_pool,
     const vk::PhysicalDevice p_device,
     const vk::DescriptorSetLayout layout,
-    const vk::DescriptorPool descriptor_pool
+    const vk::DescriptorPool descriptor_pool,
+    const vk::Sampler sampler
 ) {
+    sampler_ = sampler;
     device_ = device;
     graphics_queue_ = graphics_queue;
     command_pool_ = command_pool;
@@ -565,7 +592,7 @@ void tdl::Texture::loadImage() {
 
     stbi_image_free(const_cast<stbi_uc*>(pixels)); // release stb representation of image
 
-    image_.createSampler();
+    image_.setSampler(sampler_);
 
     image_.createDescriptor(
         layout_,
@@ -613,7 +640,7 @@ void tdl::Texture::loadVideo() {
         p_device_
     );
 
-    image_.createSampler();
+    image_.setSampler(sampler_);
     image_.updateDescriptor();
 
     loaded_ = true; // stop this code from bering run again
@@ -639,7 +666,7 @@ void tdl::Texture::loadColor() {
         p_device_
     );
 
-    image_.createSampler();
+    image_.setSampler(sampler_);
     image_.updateDescriptor();
 
     loaded_ = true; // stop this code from being run again

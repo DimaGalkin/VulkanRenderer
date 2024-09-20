@@ -432,6 +432,7 @@ CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o: \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h \
  /usr/include/c++/13/bits/fstream.tcc \
  /home/dima/Projects/ThreeDL/engine/vulkan/buffers.hpp \
+ /home/dima/Projects/ThreeDL/engine/vulkan/../lighting.hpp \
  /home/dima/Projects/ThreeDL/engine/vulkan/../objects.hpp \
  /usr/local/include/opencv4/opencv2/videoio.hpp \
  /usr/local/include/opencv4/opencv2/core.hpp \

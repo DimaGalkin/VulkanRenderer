@@ -63,8 +63,11 @@ tdl::Image::Image(
     const vk::Device device,
     const vk::CommandPool command_pool,
     const vk::Queue graphics_queue,
-    const vk::PhysicalDevice p_device
+    const vk::PhysicalDevice p_device,
+    const vk::Sampler sampler
 ) {
+    sampler_ = sampler;
+
     // load image data
     loadImage(
         image,
@@ -296,43 +299,6 @@ void tdl::Image::recreateImageView(
     } catch (const vk::SystemError& e) {
         throw std::runtime_error(
             "ERR 007: Failed to create image view! tdl::Image::loadImage(...)"
-            + std::string(e.what())
-        );
-    }
-}
-
-
-void tdl::Image::createSampler() {
-    device_.destroySampler(sampler_); // destory incase already allocated (avoid memory leaks)
-
-    // get device properties to allow anisotropic filtering
-    vk::PhysicalDeviceProperties properties {};
-    physical_device_.getProperties(&properties);
-
-    const vk::SamplerCreateInfo sampler_info {
-        {},
-        vk::Filter::eLinear,
-        vk::Filter::eLinear,
-        vk::SamplerMipmapMode::eLinear,
-        vk::SamplerAddressMode::eRepeat,
-        vk::SamplerAddressMode::eRepeat,
-        vk::SamplerAddressMode::eRepeat,
-        0.0f,
-        properties.limits.maxSamplerAnisotropy > 1.0f, // enable if anisotropy > 1 is supported
-        properties.limits.maxSamplerAnisotropy,
-        VK_FALSE,
-        vk::CompareOp::eAlways,
-        0.0f,
-        0.0f,
-        vk::BorderColor::eIntOpaqueBlack,
-        VK_FALSE
-    };
-
-    try {
-        sampler_ = device_.createSampler(sampler_info);
-    } catch (const vk::SystemError& e) {
-        throw std::runtime_error(
-            "ERR 008: Failed to create sampler! tdl::Image::createSampler(...)"
             + std::string(e.what())
         );
     }

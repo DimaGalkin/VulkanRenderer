@@ -88,6 +88,7 @@ void tdl::Vlkn::init() {
     createLogicalDevice();
     createSwapchain();
     createImageViews();
+    createSampler();
     createRenderPass();
     createDescriptorSetLayout();
     createGraphicsPipeline();
@@ -549,6 +550,8 @@ void tdl::Vlkn::createCommandPool() {
 
 void tdl::Vlkn::loadModels() {
     for (const auto& object : objects_) {
+        object->setSampler(sampler_);
+
         object->loadMesh(device_, graphics_queue_, command_pool_, physical_device_);
 
         object->loadTexture(
@@ -570,6 +573,42 @@ void tdl::Vlkn::loadModels() {
 
         object->createDescriptorSets(max_f_frames_, descriptor_pool_, device_, model_layout_, object_layout_);
     }
+
+    for (const auto& light : lights_) {
+        light->light_model_->setSampler(sampler_);
+
+        light->light_model_->loadMesh(device_, graphics_queue_, command_pool_, physical_device_);
+
+        light->light_model_->loadTexture(
+            device_,
+            graphics_queue_,
+            command_pool_,
+            physical_device_,
+            texture_layout_,
+            descriptor_pool_
+        );
+
+        light->light_model_->initUBOs(
+            max_f_frames_,
+            device_,
+            graphics_queue_,
+            command_pool_,
+            physical_device_
+        );
+
+        light->light_model_->createDescriptorSets(max_f_frames_, descriptor_pool_, device_, model_layout_, object_layout_);
+    }
+
+    LightHelper::initUBOs(
+        light_ubos_,
+        max_f_frames_,
+        device_,
+        graphics_queue_,
+        command_pool_,
+        physical_device_
+    );
+
+    LightHelper::createDescriptorSets(light_descriptor_sets_, light_ubos_, max_f_frames_, descriptor_pool_, device_, lights_layout_);
 }
 
 void tdl::Vlkn::startCommandBuffers() {
@@ -622,10 +661,15 @@ void tdl::Vlkn::startCommandBuffers() {
 
         command_buffers_[i].beginRenderPass(pass_info, vk::SubpassContents::eInline);
         command_buffers_[i].bindPipeline(vk::PipelineBindPoint::eGraphics, graphics_pipeline_);
+        
+        command_buffers_[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout_, 4, 1, &light_descriptor_sets_[current_frame_], 0, nullptr);
         command_buffers_[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout_, 0, 1, &descriptor_sets_[current_frame_], 0, nullptr);
 
         for (const auto& object : objects_) {
             object->render(command_buffers_[i], pipeline_layout_, current_frame_);
+        }
+        for (const auto& light : lights_) {
+            light->light_model_->render(command_buffers_[i], pipeline_layout_, current_frame_);
         }
 
         command_buffers_[i].endRenderPass();
@@ -640,6 +684,43 @@ void tdl::Vlkn::startCommandBuffers() {
         }
     }
 }
+
+void tdl::Vlkn::createSampler() {
+    device_.destroySampler(sampler_); // destory incase already allocated (avoid memory leaks)
+
+    // get device properties to allow anisotropic filtering
+    vk::PhysicalDeviceProperties properties {};
+    physical_device_.getProperties(&properties);
+
+    const vk::SamplerCreateInfo sampler_info {
+            {},
+            vk::Filter::eLinear,
+            vk::Filter::eLinear,
+            vk::SamplerMipmapMode::eLinear,
+            vk::SamplerAddressMode::eRepeat,
+            vk::SamplerAddressMode::eRepeat,
+            vk::SamplerAddressMode::eRepeat,
+            0.0f,
+            properties.limits.maxSamplerAnisotropy > 1.0f, // enable if anisotropy > 1 is supported
+            properties.limits.maxSamplerAnisotropy,
+            VK_FALSE,
+            vk::CompareOp::eAlways,
+            0.0f,
+            0.0f,
+            vk::BorderColor::eIntOpaqueBlack,
+            VK_FALSE
+        };
+
+    try {
+        sampler_ = device_.createSampler(sampler_info);
+    } catch (const vk::SystemError& e) {
+        throw std::runtime_error(
+            "ERR 008: Failed to create sampler! tdl::Image::createSampler(...)"
+            + std::string(e.what())
+        );
+    }
+}
+
 
 void tdl::Vlkn::createSyncObjects() {
     image_available_.resize(max_f_frames_);
@@ -721,7 +802,7 @@ void tdl::Vlkn::createGraphicsPipeline() {
         VK_FALSE,
         VK_FALSE,
         vk::PolygonMode::eFill,
-        vk::CullModeFlagBits::eFront,
+        vk::CullModeFlagBits::eNone,
         vk::FrontFace::eClockwise,
         VK_FALSE,
         0.0f,
@@ -765,7 +846,7 @@ void tdl::Vlkn::createGraphicsPipeline() {
         {0.0f, 0.0f, 0.0f, 0.0f}
     };
 
-    const vk::DescriptorSetLayout layouts[] = { ubo_layout_, texture_layout_, object_layout_, model_layout_ };
+    const vk::DescriptorSetLayout layouts[] = { ubo_layout_, texture_layout_, object_layout_, model_layout_, lights_layout_ };
 
     const vk::PipelineLayoutCreateInfo pipe_info { // NOLINT (not a constant expression)
         {},
@@ -858,6 +939,14 @@ void tdl::Vlkn::createDescriptorSetLayout() {
         nullptr
     };
 
+    static constexpr vk::DescriptorSetLayoutBinding light_binding {
+        5,
+        vk::DescriptorType::eUniformBuffer,
+        1,
+        vk::ShaderStageFlagBits::eFragment,
+        nullptr
+    };
+
     vk::DescriptorSetLayoutCreateInfo layout_info {
         {},
         1,
@@ -911,6 +1000,19 @@ void tdl::Vlkn::createDescriptorSetLayout() {
         ) != vk::Result::eSuccess
     ) throw std::runtime_error (
         "ERR 060: failed to create descriptor layout for texture_binding"
+        "Vlkn::createDescriptorSetLayout(...)"
+    );
+
+    layout_info.pBindings = &light_binding;
+
+    if (
+        device_.createDescriptorSetLayout(
+            &layout_info,
+            nullptr,
+            &lights_layout_
+        ) != vk::Result::eSuccess
+    ) throw std::runtime_error (
+        "ERR 061: failed to create descriptor layout for lights_binding"
         "Vlkn::createDescriptorSetLayout(...)"
     );
 }
@@ -1012,7 +1114,7 @@ void tdl::Vlkn::createDescriptorPool() {
     const vk::DescriptorPoolSize pool_sizes[] {
         {
             vk::DescriptorType::eUniformBuffer,
-            static_cast<uint32_t>(max_f_frames_)
+            static_cast<uint32_t>(max_f_frames_) + 16
         },
         {
             vk::DescriptorType::eCombinedImageSampler,
@@ -1020,10 +1122,13 @@ void tdl::Vlkn::createDescriptorPool() {
         }
     };
 
-    size_t descriptor_size = 0;
+    size_t descriptor_size = 2;
 
     for (const auto& model : objects_) {
         descriptor_size += max_f_frames_ + model->objects_.size() * (1 + max_f_frames_);
+    }
+    for (const auto& light : lights_) {
+        descriptor_size += max_f_frames_ + light->light_model_->objects_.size() * (1 + max_f_frames_);
     }
 
     const vk::DescriptorPoolCreateInfo pool_info {
@@ -1087,19 +1192,48 @@ void tdl::Vlkn::createDescriptorSets() {
 void tdl::Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
     uniform_buffers_[current_frame_]->set(&ubo, sizeof(ubo));
 
+    auto l = LightObject {
+        .num_lights =  static_cast<int>(lights_.size())
+    };
+
+    for (auto & light : l.lights) { light = {}; }
+    int idx = 0;
+    for (const auto& light : lights_) {
+        l.lights[idx] = light->ubo_data_;
+        ++idx;
+    }
+
+    light_ubos_[current_frame_]->set(&l, sizeof(LightObject));
+
     for (const auto& model : objects_) {
         model->imageTick();
 
         for (const auto& [_, obj] : model->objects_) {
-            if(obj->has_changed_) {
+            if (obj->has_changed_) {
                 obj->ubos_[current_frame_]->set(&obj->ubo_data_, sizeof(obj->ubo_data_));
                 obj->has_changed_ = false;
             }
         }
 
-        if(model->has_changed_) {
+        if (model->has_changed_) {
             model->ubos_[current_frame_]->set(&model->ubo_data_, sizeof(model->ubo_data_));
             model->has_changed_ = false;
+        }
+    }
+
+    for (const auto& light : lights_) {
+        light->light_model_->imageTick();
+
+        for (const auto& [_, obj] : light->light_model_->objects_) {
+            if (obj->has_changed_) {
+                obj->ubos_[current_frame_]->set(&obj->ubo_data_, sizeof(obj->ubo_data_));
+                obj->has_changed_ = false;
+            }
+        }
+
+        if (light->light_model_->has_changed_) {
+            light->light_model_->ubos_[current_frame_]->set(&light->light_model_->ubo_data_, sizeof(light->light_model_->ubo_data_));
+            light->light_model_->has_changed_ = false;
         }
     }
 }

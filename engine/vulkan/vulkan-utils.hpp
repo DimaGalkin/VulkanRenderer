@@ -23,6 +23,7 @@
 #include <string>
 
 #include "buffers.hpp"
+#include "../lighting.hpp"
 #include "../objects.hpp"
 
 namespace tdl {
@@ -60,8 +61,8 @@ namespace tdl {
     class RendererInfo {
         public:
             // 1200p default
-            int width_ = 1920;
-            int height_ = 1200;
+            int width_ = 1280;
+            int height_ = 720;
 
             std::string title_ = "ThreeDL App"; // Default title
 
@@ -83,6 +84,12 @@ namespace tdl {
                 const shared_model<Model>& object
             ) { objects_.push_back(object); }
 
+            void add (
+                const std::shared_ptr<LightInterface>& light
+            ) {
+                lights_.push_back(light);
+            }
+
             void newFrame (
                 const UniformBufferObject& ubo
             );
@@ -90,6 +97,8 @@ namespace tdl {
             ~Vlkn() {
                 cleanup();
                 delete mem_vert_;
+
+                for (const auto& u : light_ubos_) delete u;
             }
 
             RendererInfo* const info_;
@@ -100,11 +109,17 @@ namespace tdl {
             std::vector<MemoryBuffer*> uniform_buffers_;
 
             std::vector<shared_model<Model>> objects_;
+            std::vector<std::shared_ptr<LightInterface>> lights_;
+
+            std::vector<MemoryBuffer*> light_ubos_;
+            std::vector<vk::DescriptorSet> light_descriptor_sets_;
 
             vk::SurfaceKHR surface_;
             vk::SwapchainKHR swapchain_;
 
             vk::UniqueInstance instance_;
+
+            vk::Sampler sampler_;
 
             vk::Queue present_queue_;
 
@@ -136,6 +151,7 @@ namespace tdl {
             vk::DescriptorSetLayout object_layout_;
             vk::DescriptorSetLayout model_layout_;
             vk::DescriptorSetLayout texture_layout_;
+            vk::DescriptorSetLayout lights_layout_;
             vk::PipelineLayout pipeline_layout_;
 
             vk::DescriptorPool descriptor_pool_;
@@ -157,6 +173,7 @@ namespace tdl {
             void createLogicalDevice();
             void createSwapchain();
             void createImageViews();
+            void createSampler();
             void createRenderPass();
             void createFramebuffers();
             void createCommandPool();

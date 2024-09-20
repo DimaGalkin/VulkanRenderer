@@ -39,6 +39,12 @@ namespace tdl {
                 models_.push_back(model);
             }
 
+            void add (
+                const std::shared_ptr<LightInterface>& light
+            ) {
+                lights_.push_back(light);
+            }
+
             /**
              * @breif Sets the camera controller of the ThreeDL class
              *
@@ -146,6 +152,7 @@ namespace tdl {
             std::unique_ptr<Vlkn> app_ = nullptr;
 
             std::vector<shared_model<Model>> models_;
+            std::vector<std::shared_ptr<LightInterface>> lights_;
 
             std::unordered_map<int, bool> keys_;
 

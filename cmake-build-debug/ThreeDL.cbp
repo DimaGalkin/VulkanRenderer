@@ -90,6 +90,12 @@
 		<Unit filename="/home/dima/Projects/ThreeDL/engine/camera.hpp">
 			<Option target="ThreeDL"/>
 		</Unit>
+		<Unit filename="/home/dima/Projects/ThreeDL/engine/lighting.cpp">
+			<Option target="ThreeDL"/>
+		</Unit>
+		<Unit filename="/home/dima/Projects/ThreeDL/engine/lighting.hpp">
+			<Option target="ThreeDL"/>
+		</Unit>
 		<Unit filename="/home/dima/Projects/ThreeDL/engine/objects.cpp">
 			<Option target="ThreeDL"/>
 		</Unit>

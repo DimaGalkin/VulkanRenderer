@@ -136,7 +136,8 @@ namespace tdl {
                 vk::Device device,
                 vk::CommandPool command_pool,
                 vk::Queue graphics_queue,
-                vk::PhysicalDevice p_device
+                vk::PhysicalDevice p_device,
+                vk::Sampler sampler
             );
 
             static void setImageLayout (
@@ -174,7 +175,9 @@ namespace tdl {
                 vk::PipelineLayout pipeline_layout
             ) const;
 
-            void createSampler();
+            void setSampler(
+                const vk::Sampler sampler
+            ) { sampler_ = sampler; };
 
             void setDevice (
                 vk::Device device

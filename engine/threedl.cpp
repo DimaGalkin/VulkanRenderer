@@ -27,7 +27,7 @@ void tdl::ThreeDL::internalAnimation(
         // control code only called if a camera controller was passed to setCamera()
         if (controlled_) {
             ubo_mutex_.lock();
-            controller_->tick(keys_, delta / 10.0f);
+            controller_->tick(keys_, .001f / delta);
             ubo_mutex_.unlock();
         }
     }
@@ -71,6 +71,11 @@ void tdl::ThreeDL::start(
     // add render queue to vulkan
     for (const auto& object : models_) {
         app_->add(object);
+    }
+
+    for (const auto& light : lights_) {
+        light->exportGPU();
+        app_->add(light);
     }
 
     app_->init(); // initialse the vulkan helper

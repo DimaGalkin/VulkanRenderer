@@ -27,7 +27,7 @@ namespace tdl {
     struct Material {
         std::string name = "default";
 
-        glm::vec3 ambient = {1.0f, 1.0f, 1.0f};
+        glm::vec3 ambient = {0.0f, 0.0f, 0.0f};
 
         bool diffuse_is_map = false;
         glm::vec3 diffuse = {1.0f, 1.0f, 1.0f};
@@ -58,6 +58,20 @@ namespace tdl {
     struct ModelObject {
         glm::mat4 translation = glm::mat4(1);
         glm::mat4 rotation = glm::mat4(1);
+    };
+
+    struct MaterialObject {
+        glm::vec4 ambient_color;
+        glm::vec4 specular_color;
+        glm::vec4 specular_exponent;
+        glm::vec4 other_data;
+    };
+
+    struct ObjectObject {
+        glm::mat4 translation = glm::mat4(1);
+        glm::mat4 rotation = glm::mat4(1);
+
+        MaterialObject mat {};
     };
 
     class Model;
@@ -369,7 +383,8 @@ namespace tdl {
                 vk::CommandPool command_pool,
                 vk::PhysicalDevice p_device,
                 vk::DescriptorSetLayout layout,
-                vk::DescriptorPool descriptor_pool
+                vk::DescriptorPool descriptor_pool,
+                vk::Sampler sampler
             );
 
             /**
@@ -415,6 +430,7 @@ namespace tdl {
             vk::PhysicalDevice p_device_;
             vk::DescriptorSetLayout layout_;
             vk::DescriptorPool descriptor_pool_;
+            vk::Sampler sampler_;
 
             std::chrono::high_resolution_clock::time_point time_ = std::chrono::high_resolution_clock::now();
 
@@ -492,11 +508,12 @@ namespace tdl {
             virtual void frameTick() = 0;
 
             std::vector<MemoryBuffer*> ubos_;
-            ModelObject ubo_data_ {};
+            ObjectObject ubo_data_ {};
             bool has_changed_ = true;
             TexPtr tex_;
             MeshPtr mesh_;
             glm::vec3 centre_ {};
+            vk::Sampler sampler_;
     };
     using ObjectPtr = std::shared_ptr<ObjectInterface>;
 
@@ -531,6 +548,10 @@ namespace tdl {
                 } else {
                     tex_ = std::make_shared<Texture>(Material::lTorRGBA(material_.diffuse));
                 }
+
+                ubo_data_.mat.ambient_color = glm::vec4(material.ambient, 0);
+                ubo_data_.mat.specular_color = glm::vec4(material.specular, 0);
+                ubo_data_.mat.specular_exponent = glm::vec4(material.specular_exponent, 0, 0, 0);
             }
 
             /**
@@ -612,7 +633,8 @@ namespace tdl {
                     command_pool,
                     p_device,
                     layout,
-                    descriptor_pool
+                    descriptor_pool,
+                    sampler_
                 );
             }
 
@@ -680,7 +702,7 @@ namespace tdl {
                 ubos_.resize(max_f_frames);
                 for (unsigned int i = 0; i < max_f_frames; ++i) {
                     ubos_[i] = new MemoryBuffer (
-                        sizeof(ModelObject),
+                        sizeof(ObjectObject),
                         vk::BufferUsageFlagBits::eUniformBuffer,
                         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                         device,
@@ -726,7 +748,7 @@ namespace tdl {
                     const vk::DescriptorBufferInfo buffer_info {
                         ubos_[i]->getBuffer(),
                         0,
-                        sizeof(ModelObject)
+                        sizeof(ObjectObject)
                     };
 
                     const vk::WriteDescriptorSet descriptor_write {
@@ -887,6 +909,8 @@ namespace tdl {
                 const glm::vec3& val
             );
 
+            [[nodiscard]] glm::vec3 getCentre() const { return centre_; }
+
             /**
              * @breif Extracts all objects with given name into a seperate Model
              *
@@ -1009,6 +1033,14 @@ namespace tdl {
              * @breif Calculates centre of all child objects and subsequently itself
             */
             void caluclateCentre();
+
+            void setSampler(
+                const vk::Sampler sampler
+            ) {
+                for (const auto& object : objects_ | std::ranges::views::values) {
+                    object->sampler_ = sampler;
+                }
+            }
 
             std::vector<std::pair<std::string, std::shared_ptr<ObjectInterface>>> objects_;
             std::vector<std::string> keys_;

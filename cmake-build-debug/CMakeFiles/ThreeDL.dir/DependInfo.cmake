@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/dima/Projects/ThreeDL/engine/camera.cpp" "CMakeFiles/ThreeDL.dir/engine/camera.cpp.o" "gcc" "CMakeFiles/ThreeDL.dir/engine/camera.cpp.o.d"
+  "/home/dima/Projects/ThreeDL/engine/lighting.cpp" "CMakeFiles/ThreeDL.dir/engine/lighting.cpp.o" "gcc" "CMakeFiles/ThreeDL.dir/engine/lighting.cpp.o.d"
   "/home/dima/Projects/ThreeDL/engine/objects.cpp" "CMakeFiles/ThreeDL.dir/engine/objects.cpp.o" "gcc" "CMakeFiles/ThreeDL.dir/engine/objects.cpp.o.d"
   "/home/dima/Projects/ThreeDL/engine/threedl.cpp" "CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o" "gcc" "CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o.d"
   "/home/dima/Projects/ThreeDL/engine/vulkan/buffers.cpp" "CMakeFiles/ThreeDL.dir/engine/vulkan/buffers.cpp.o" "gcc" "CMakeFiles/ThreeDL.dir/engine/vulkan/buffers.cpp.o.d"

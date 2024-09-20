@@ -17,7 +17,9 @@ add_executable(ThreeDL main.cpp
         engine/vulkan/buffers.cpp
         engine/camera.cpp
         engine/camera.hpp
-        engine/types.hpp)
+        engine/types.hpp
+        engine/lighting.hpp
+        engine/lighting.cpp)
 
 target_link_libraries( ThreeDL ${OpenCV_LIBS} )
 target_link_libraries(ThreeDL glfw)

@@ -153,6 +153,30 @@ engine/camera.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ThreeDL.dir/build.make CMakeFiles/ThreeDL.dir/engine/camera.cpp.s
 .PHONY : engine/camera.cpp.s
 
+engine/lighting.o: engine/lighting.cpp.o
+.PHONY : engine/lighting.o
+
+# target to build an object file
+engine/lighting.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ThreeDL.dir/build.make CMakeFiles/ThreeDL.dir/engine/lighting.cpp.o
+.PHONY : engine/lighting.cpp.o
+
+engine/lighting.i: engine/lighting.cpp.i
+.PHONY : engine/lighting.i
+
+# target to preprocess a source file
+engine/lighting.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ThreeDL.dir/build.make CMakeFiles/ThreeDL.dir/engine/lighting.cpp.i
+.PHONY : engine/lighting.cpp.i
+
+engine/lighting.s: engine/lighting.cpp.s
+.PHONY : engine/lighting.s
+
+# target to generate assembly for a file
+engine/lighting.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ThreeDL.dir/build.make CMakeFiles/ThreeDL.dir/engine/lighting.cpp.s
+.PHONY : engine/lighting.cpp.s
+
 engine/objects.o: engine/objects.cpp.o
 .PHONY : engine/objects.o
 
@@ -285,6 +309,9 @@ help:
 	@echo "... engine/camera.o"
 	@echo "... engine/camera.i"
 	@echo "... engine/camera.s"
+	@echo "... engine/lighting.o"
+	@echo "... engine/lighting.i"
+	@echo "... engine/lighting.s"
 	@echo "... engine/objects.o"
 	@echo "... engine/objects.i"
 	@echo "... engine/objects.s"

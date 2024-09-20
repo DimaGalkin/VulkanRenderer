@@ -141,11 +141,11 @@ void tdl::DefaultController::keyPressed(
             break;
         // rotate left
         case GLFW_KEY_Q:
-            rotation_mat_ = glm::rotate(rotation_mat_, -static_cast<float>(delta_t) / 100, {0, 1, 0});
+            rotation_mat_ = glm::rotate(rotation_mat_, -static_cast<float>(delta_t), {0, 1, 0});
             break;
         // rotate right
         case GLFW_KEY_E:
-            rotation_mat_ = glm::rotate(rotation_mat_, static_cast<float>(delta_t) / 100, {0, 1, 0});
+            rotation_mat_ = glm::rotate(rotation_mat_, static_cast<float>(delta_t), {0, 1, 0});
             break;
         default:
             break;

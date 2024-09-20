@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/ThreeDL.dir/engine/camera.cpp.o"
   "CMakeFiles/ThreeDL.dir/engine/camera.cpp.o.d"
+  "CMakeFiles/ThreeDL.dir/engine/lighting.cpp.o"
+  "CMakeFiles/ThreeDL.dir/engine/lighting.cpp.o.d"
   "CMakeFiles/ThreeDL.dir/engine/objects.cpp.o"
   "CMakeFiles/ThreeDL.dir/engine/objects.cpp.o.d"
   "CMakeFiles/ThreeDL.dir/engine/threedl.cpp.o"
