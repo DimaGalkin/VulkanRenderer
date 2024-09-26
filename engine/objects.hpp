@@ -40,6 +40,8 @@ namespace tdl {
         float specular_exponent = 10.0f;
         float transparency_d = 1.0f;
 
+        int light_ = 0;
+
         static std::array<unsigned char, 4> lTorRGBA (
             const glm::vec3& linear
         ) {
@@ -506,6 +508,7 @@ namespace tdl {
             virtual void caluclateCentre() = 0;
             virtual void imageTick() = 0;
             virtual void frameTick() = 0;
+            virtual void setNoLight() = 0;
 
             std::vector<MemoryBuffer*> ubos_;
             ObjectObject ubo_data_ {};
@@ -544,14 +547,14 @@ namespace tdl {
                 material_ { material }
             {
                 if (material_.diffuse_is_map) {
-                    tex_ = std::make_shared<Texture>(material_.diffuse_map_path);
+                    tex_ = std::make_shared<Texture>(material_.diffuse_map_path, tex_type);
                 } else {
                     tex_ = std::make_shared<Texture>(Material::lTorRGBA(material_.diffuse));
                 }
 
                 ubo_data_.mat.ambient_color = glm::vec4(material.ambient, 0);
                 ubo_data_.mat.specular_color = glm::vec4(material.specular, 0);
-                ubo_data_.mat.specular_exponent = glm::vec4(material.specular_exponent, 0, 0, 0);
+                ubo_data_.mat.specular_exponent = glm::vec4(material.specular_exponent, material_.light_, 0, 0);
             }
 
             /**
@@ -600,6 +603,13 @@ namespace tdl {
                 const glm::vec3& val
             ) override {
                 ubo_data_.translation = glm::translate(ubo_data_.translation, val);
+                has_changed_ = true;
+            }
+
+            void setNoLight() override {
+                material_.light_ = 1;
+                ubo_data_.mat.specular_exponent.y = 1;
+                has_changed_ = true;
             }
 
             ~Object() override {
@@ -925,6 +935,12 @@ namespace tdl {
              * @return std::vector<std::string> of all names
             */
             [[nodiscard]] std::vector<std::string> getKeys() const;
+
+            void setNoLight() {
+                for (const auto& object : objects_ | std::ranges::views::values) {
+                    object->setNoLight();
+                }
+            }
 
             ~Model() {
                 for (const auto& memory : ubos_) {

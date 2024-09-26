@@ -306,6 +306,7 @@ void tdl::Vlkn::pickPhysicalDevice() {
     if (devices.empty()) throw std::runtime_error("ERR 037: No devices found! Vlkn::pickPhysicalDevice(...)");
 
     physical_device_ = devices[1];
+    std::cout << physical_device_.getProperties().deviceName << std::endl;
 
     // for (const auto& device : devices) {
     //     if (isDeviceSuitable(device)) { physical_device_ = device; break; }
@@ -510,7 +511,7 @@ void tdl::Vlkn::createFramebuffers() {
     for (size_t i = 0; i < image_views_.size(); ++i) {
         const std::array<vk::ImageView, 2> attachments = { image_views_[i], z_buffer_view_ };
 
-        vk::FramebufferCreateInfo framebufferInfo = {
+        vk::FramebufferCreateInfo framebufferInfo {
             {},
             render_pass_,
             attachments.size(),
@@ -694,12 +695,12 @@ void tdl::Vlkn::createSampler() {
 
     const vk::SamplerCreateInfo sampler_info {
             {},
-            vk::Filter::eLinear,
-            vk::Filter::eLinear,
-            vk::SamplerMipmapMode::eLinear,
-            vk::SamplerAddressMode::eRepeat,
-            vk::SamplerAddressMode::eRepeat,
-            vk::SamplerAddressMode::eRepeat,
+            vk::Filter::eNearest,
+            vk::Filter::eNearest,
+            vk::SamplerMipmapMode::eNearest,
+            vk::SamplerAddressMode::eClampToBorder,
+            vk::SamplerAddressMode::eClampToBorder,
+            vk::SamplerAddressMode::eClampToBorder,
             0.0f,
             properties.limits.maxSamplerAnisotropy > 1.0f, // enable if anisotropy > 1 is supported
             properties.limits.maxSamplerAnisotropy,
@@ -1199,6 +1200,7 @@ void tdl::Vlkn::regenUBOs(const UniformBufferObject& ubo) const {
     for (auto & light : l.lights) { light = {}; }
     int idx = 0;
     for (const auto& light : lights_) {
+        light->exportGPU();
         l.lights[idx] = light->ubo_data_;
         ++idx;
     }

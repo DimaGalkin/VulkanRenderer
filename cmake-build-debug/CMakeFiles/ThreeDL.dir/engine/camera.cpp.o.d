@@ -381,7 +381,9 @@ CMakeFiles/ThreeDL.dir/engine/camera.cpp.o: \
  /usr/local/include/opencv4/opencv2/core/saturate.hpp \
  /usr/local/include/opencv4/opencv2/core/fast_math.hpp \
  /usr/local/include/opencv4/opencv2/core/matx.inl.hpp \
- /home/dima/Projects/ThreeDL/engine/types.hpp /usr/include/GLFW/glfw3.h \
+ /home/dima/Projects/ThreeDL/engine/types.hpp \
+ /usr/include/c++/13/iostream /usr/include/c++/13/istream \
+ /usr/include/c++/13/bits/istream.tcc /usr/include/GLFW/glfw3.h \
  /usr/include/GL/gl.h /usr/include/GL/glext.h \
  /usr/include/KHR/khrplatform.h /usr/include/glm/ext/matrix_transform.hpp \
  /usr/include/glm/gtc/constants.hpp /usr/include/glm/gtc/constants.inl \

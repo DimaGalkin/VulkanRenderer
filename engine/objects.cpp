@@ -108,7 +108,23 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
                 }
 
                 // create and add new object
-                object = std::make_shared<Object<tdl::File::Image>>(mesh, materials[currrent_mtl]);
+                if (materials[currrent_mtl].diffuse_is_map) {
+                    const stbi_uc* pixels = stbi_load(
+                        materials[currrent_mtl].diffuse_map_path.c_str(),
+                        nullptr, nullptr,
+                        nullptr,
+                        STBI_rgb_alpha
+                    );
+
+                    if (pixels == nullptr) {
+                        object = std::make_shared<Object<tdl::File::Video>>(mesh, materials[currrent_mtl]);
+                    } else {
+                        object = std::make_shared<Object<>>(mesh, materials[currrent_mtl]);
+                    }
+                } else {
+                    object = std::make_shared<Object<>>(mesh, materials[currrent_mtl]);
+                }
+
                 objects.emplace_back(obj_name, object);
             }
             first = false; // all subsequent calls of usemtl will create a new object
@@ -185,7 +201,24 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
     // load remaining vertices as the last object
     std::vector<Vertex> slice (&verts.at(start), &verts.back() + 1);
     auto mesh = std::make_shared<Mesh>(slice);
-    object = std::make_shared<Object<tdl::File::Image>>(mesh, materials[currrent_mtl]);
+
+    if (materials[currrent_mtl].diffuse_is_map) {
+        const stbi_uc* pixels = stbi_load(
+            materials[currrent_mtl].diffuse_map_path.c_str(),
+            nullptr, nullptr,
+            nullptr,
+            STBI_rgb_alpha
+        );
+
+        if (pixels == nullptr) {
+            object = std::make_shared<Object<tdl::File::Video>>(mesh, materials[currrent_mtl]);
+        } else {
+            object = std::make_shared<Object<>>(mesh, materials[currrent_mtl]);
+        }
+    } else {
+        object = std::make_shared<Object<>>(mesh, materials[currrent_mtl]);
+    }
+
     objects.emplace_back(obj_name, object);
 
     file.close();
@@ -260,7 +293,20 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
     mtl.diffuse_is_map = true; // texture is an image
 
     auto mesh = std::make_shared<Mesh>(verts);
-    object = std::make_shared<Object<tdl::File::Image>>(mesh, mtl);
+
+    const stbi_uc* pixels = stbi_load(
+        path.c_str(),
+        nullptr, nullptr,
+        nullptr,
+        STBI_rgb_alpha
+    );
+
+    if (pixels == nullptr) {
+        object = std::make_shared<Object<tdl::File::Video>>(mesh, mtl);
+    } else {
+        object = std::make_shared<Object<>>(mesh, mtl);
+    }
+
     objects.emplace_back(obj_name, object);
 
     file.close();
@@ -358,7 +404,12 @@ std::vector<tdl::Material> tdl::OBJLoader::loadMTL(
 
     std::ifstream mtl { path }; // open MTL file
 
-    for (std::string line; std::getline(mtl, line);) {
+    for (std::string line_raw; std::getline(mtl, line_raw);) {
+        std::string line;
+        for (const char ch : line_raw | std::views::filter([](const char c){ return std::isprint(c); })) {
+            line += ch;
+        }
+
         std::vector<std::string> tokens = split(line, ' ');
         if (tokens.empty()) continue;
 
@@ -377,11 +428,7 @@ std::vector<tdl::Material> tdl::OBJLoader::loadMTL(
         } else if (tokens[0] == "map_Kd") {
             material.diffuse_is_map = true; // map_ specifies this is image
 
-            std::string printable;
-            for (const char ch : tokens[1] | std::views::filter([](const char c){ return std::isprint(c); })) {
-                printable += ch;
-            }
-            material.diffuse_map_path = getMTLPath(printable, path); // path to image
+            material.diffuse_map_path = getMTLPath(tokens[1], path); // path to image
         } else if (tokens[0] == "Kd") {
             // no map_ means this is a single colour
             material.diffuse = glm::vec3(
@@ -704,6 +751,7 @@ void tdl::Model::rotate(
 void tdl::Model::translate(
     const glm::vec3& val
 ) {
+    has_changed_ = true;
     ubo_data_.translation = glm::translate(ubo_data_.translation, val);
 }
 

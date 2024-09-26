@@ -38,6 +38,8 @@ layout(location = 4) out vec3 outAmbient;
 layout(location = 5) out vec3 outSpecular;
 layout(location = 6) out vec3 outSpecularExp;
 
+layout(location = 7) out mat4 outTranslation;
+
 void main() {
     vec4 final_pos = mbo.translation * mbo.rotation * obo.translation * obo.rotation * vec4(inPosition, 1.0);
     gl_Position =  ubo.proj * ubo.rotation * ubo.camera * final_pos;
@@ -45,6 +47,8 @@ void main() {
     fragTexCoord = inTexCoord;
     outPosition = final_pos.xyz;
     outNormal = (mbo.rotation * vec4(inNormal, 0.0)).xyz;
+
+    outTranslation = ubo.rotation * ubo.camera;
 
     outAmbient = obo.mat.ambient_color.xyz;
     outSpecular = obo.mat.specular_color.xyz;

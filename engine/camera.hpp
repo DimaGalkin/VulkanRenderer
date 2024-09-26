@@ -97,6 +97,12 @@ namespace tdl {
                 float perspective_ = 16.0f/9.0f;
             } details_ = {};
 
+            glm::vec3 forward_ {0.0f, 0.0f, 1.0f};
+            glm::vec3 right_ {1.0f, 0.0f, 0.0f};
+
+            glm::vec4 forward_w_ {0.0f, 0.0f, 1.0f, 0.0f};
+            glm::vec4 right_w_ {1.0f, 0.0f, 0.0f, 0.0f};
+
             bool has_changed_ = true; // true as projmat hasn't been retrived yet
 
             glm::mat4 proj_mat_ {1.0f}; // initialise to identity matrix
@@ -129,7 +135,7 @@ namespace tdl {
             */
             virtual void tick (
                 const std::unordered_map<int, bool>& keys,
-                double delta_t
+                float delta_t
             ) = 0;
 
             /**
@@ -160,7 +166,7 @@ namespace tdl {
             */
             virtual void keyPressed (
                 int key,
-                double delta_t
+                float delta_t
             ) = 0;
 
             glm::mat4 rotation_mat_ = glm::mat4(1.0f);
@@ -194,7 +200,7 @@ namespace tdl {
             */
             void tick (
                 const std::unordered_map<int, bool>& keys,
-                double delta_t
+                float delta_t
             ) override;
 
             ~DefaultController() override = default;
@@ -210,7 +216,7 @@ namespace tdl {
             */
             void keyPressed (
                 int key,
-                double delta_t
+                float delta_t
             ) override;
     };
 

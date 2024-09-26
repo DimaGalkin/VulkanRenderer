@@ -46,6 +46,7 @@ CMakeFiles/ThreeDL.dir/engine/camera.cpp.o: /home/dima/Projects/ThreeDL/engine/c
   /usr/include/c++/13/bits/hashtable_policy.h \
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/ios_base.h \
+  /usr/include/c++/13/bits/istream.tcc \
   /usr/include/c++/13/bits/iterator_concepts.h \
   /usr/include/c++/13/bits/locale_classes.h \
   /usr/include/c++/13/bits/locale_classes.tcc \
@@ -134,6 +135,8 @@ CMakeFiles/ThreeDL.dir/engine/camera.cpp.o: /home/dima/Projects/ThreeDL/engine/c
   /usr/include/c++/13/initializer_list \
   /usr/include/c++/13/ios \
   /usr/include/c++/13/iosfwd \
+  /usr/include/c++/13/iostream \
+  /usr/include/c++/13/istream \
   /usr/include/c++/13/limits \
   /usr/include/c++/13/memory \
   /usr/include/c++/13/new \
@@ -3503,8 +3506,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/iterator:
 
-/usr/include/c++/13/istream:
-
 /home/dima/Projects/ThreeDL/engine/vulkan/buffers.cpp:
 
 /usr/include/c++/13/sstream:
@@ -3532,8 +3533,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/mutex:
 
 /usr/include/c++/13/bits/locale_conv.h:
-
-/usr/include/c++/13/bits/istream.tcc:
 
 /usr/include/c++/13/bits/chrono.h:
 
@@ -3725,15 +3724,7 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/confname.h:
 
-/usr/include/c++/13/unordered_map:
-
-/usr/include/c++/13/bits/stl_iterator_base_types.h:
-
-/usr/include/glm/detail/func_geometric.inl:
-
-/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
-
-/usr/include/glm/ext/matrix_double2x2_precision.hpp:
+/usr/include/x86_64-linux-gnu/bits/byteswap.h:
 
 /usr/include/c++/13/typeinfo:
 
@@ -3761,8 +3752,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/string_view:
 
-/usr/include/c++/13/string:
-
 /usr/include/vulkan/vulkan_enums.hpp:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/error_constants.h:
@@ -3778,6 +3767,8 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/numbers:
 
 /usr/include/c++/13/bits/postypes.h:
+
+/usr/include/c++/13/string:
 
 /usr/include/c++/13/ext/concurrence.h:
 
@@ -3809,19 +3800,9 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/cstddef:
 
-/usr/include/c++/13/functional:
-
-/usr/include/c++/13/cctype:
-
-/usr/include/c++/13/ext/type_traits.h:
-
 /usr/include/c++/13/bits/std_mutex.h:
 
 /usr/include/c++/13/climits:
-
-/usr/include/c++/13/vector:
-
-/usr/include/c++/13/bits/uniform_int_dist.h:
 
 /usr/include/c++/13/iostream:
 
@@ -3842,6 +3823,16 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/bits/stl_relops.h:
 
 /usr/include/glm/detail/func_packing.inl:
+
+/usr/include/c++/13/bits/stl_iterator_base_types.h:
+
+/usr/include/c++/13/unordered_map:
+
+/usr/include/glm/detail/func_geometric.inl:
+
+/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/glm/ext/matrix_double2x2_precision.hpp:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:
 
@@ -3868,6 +3859,10 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/ranges:
 
 /home/dima/Projects/ThreeDL/engine/camera.cpp:
+
+/usr/include/c++/13/new:
+
+/usr/include/glm/detail/func_matrix.inl:
 
 /usr/include/assert.h:
 
@@ -3915,10 +3910,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/mat4x2.hpp:
 
-/usr/include/c++/13/new:
-
-/usr/include/glm/detail/func_matrix.inl:
-
 /usr/include/x86_64-linux-gnu/bits/iscanonical.h:
 
 /usr/include/glm/ext/vector_int4.hpp:
@@ -3956,6 +3947,12 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/glm/detail/_fixes.hpp:
 
 /usr/include/c++/13/bits/basic_ios.h:
+
+/usr/include/c++/13/functional:
+
+/usr/include/c++/13/ext/type_traits.h:
+
+/usr/include/c++/13/cctype:
 
 /usr/include/c++/13/bits/atomic_lockfree_defines.h:
 
@@ -4047,6 +4044,8 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/vector_relational.hpp:
 
+/usr/include/c++/13/bits/istream.tcc:
+
 /usr/include/glm/ext/matrix_double4x3_precision.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/long-double.h:
@@ -4100,6 +4099,10 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/local/include/opencv4/opencv2/core/utility.hpp:
 
 /usr/include/c++/13/bits/hashtable.h:
+
+/usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h:
+
+/usr/include/strings.h:
 
 /usr/include/c++/13/tr1/poly_hermite.tcc:
 
@@ -4215,6 +4218,8 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/c++/13/bits/ranges_util.h:
 
+/usr/include/c++/13/istream:
+
 /usr/include/c++/13/bits/align.h:
 
 /usr/include/glm/detail/func_trigonometric.inl:
@@ -4236,6 +4241,10 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/algorithm:
 
 /usr/include/glm/mat4x4.hpp:
+
+/usr/include/c++/13/bits/uniform_int_dist.h:
+
+/usr/include/c++/13/vector:
 
 /usr/include/ctype.h:
 
@@ -4280,10 +4289,6 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/c++/13/concepts:
 
 /usr/include/glm/detail/type_mat3x3.inl:
-
-/usr/include/strings.h:
-
-/usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h:
 
 /usr/include/glm/detail/type_mat3x4.hpp:
 
@@ -4399,7 +4404,9 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 
 /usr/include/glm/ext/matrix_float2x3.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/byteswap.h:
+/usr/include/x86_64-linux-gnu/asm/unistd_64.h:
+
+/usr/include/glm/ext/matrix_float2x3_precision.hpp:
 
 /usr/include/glm/detail/type_mat4x2.hpp:
 
@@ -4552,7 +4559,3 @@ CMakeFiles/ThreeDL.dir/main.cpp.o: /home/dima/Projects/ThreeDL/main.cpp \
 /usr/include/unistd.h:
 
 /usr/include/x86_64-linux-gnu/asm/errno.h:
-
-/usr/include/glm/ext/matrix_float2x3_precision.hpp:
-
-/usr/include/x86_64-linux-gnu/asm/unistd_64.h:

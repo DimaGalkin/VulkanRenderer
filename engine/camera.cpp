@@ -1,5 +1,6 @@
 #include "camera.hpp"
 
+#include <iostream>
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <stdexcept>
@@ -111,7 +112,7 @@ glm::mat4 tdl::Camera::getProjectionMatrix() {
 
 void tdl::DefaultController::tick(
     const std::unordered_map<int, bool>& keys,
-    const double delta_t
+    const float delta_t
 ) {
     for (const auto& [key, pressed] : keys) {
         if (pressed) keyPressed(key, delta_t); // if a key is currently pressed then log it.
@@ -120,32 +121,34 @@ void tdl::DefaultController::tick(
 
 void tdl::DefaultController::keyPressed(
     const int key,
-    const double delta_t
+    const float delta_t
 ) {
     switch (key) {
         // forward
         case GLFW_KEY_W:
-            camera_mat_ = glm::translate(camera_mat_, {0, 0, 1 * delta_t});
+            camera_mat_ = glm::translate(camera_mat_, forward_ * 10.0f * delta_t);
             break;
         // backward
         case GLFW_KEY_S:
-            camera_mat_ = glm::translate(camera_mat_, {0, 0, -1 * delta_t});
+            camera_mat_ = glm::translate(camera_mat_, forward_ * -10.0f * delta_t);
             break;
         // left
         case GLFW_KEY_A:
-            camera_mat_ = glm::translate(camera_mat_, {1 * delta_t, 0, 0});
+            camera_mat_ = glm::translate(camera_mat_, right_ * 10.0f * delta_t);
             break;
         // right
         case GLFW_KEY_D:
-            camera_mat_ = glm::translate(camera_mat_, {-1 * delta_t, 0, 0});
+            camera_mat_ = glm::translate(camera_mat_, right_ * -10.0f * delta_t);
             break;
         // rotate left
         case GLFW_KEY_Q:
-            rotation_mat_ = glm::rotate(rotation_mat_, -static_cast<float>(delta_t), {0, 1, 0});
+            rotation_mat_ = glm::rotate(rotation_mat_, -delta_t, {0, 1, 0});
+
             break;
         // rotate right
         case GLFW_KEY_E:
-            rotation_mat_ = glm::rotate(rotation_mat_, static_cast<float>(delta_t), {0, 1, 0});
+            rotation_mat_ = glm::rotate(rotation_mat_, delta_t, {0, 1, 0});
+
             break;
         default:
             break;

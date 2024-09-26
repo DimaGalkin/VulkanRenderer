@@ -86,6 +86,21 @@ namespace tdl {
                 position_ { position }
             {}
 
+            LightInterface (
+                const glm::vec4& position,
+                const glm::vec4& direction,
+                const glm::vec4& color,
+                const float fov,
+                const float intensity,
+                const LightingModels model
+            ) : color_ { color },
+                direction_ { direction },
+                fov_ { fov },
+                intensity_ { intensity },
+                model_ { model },
+                position_ { position }
+            {}
+
             virtual void setColor(const glm::vec4& color) = 0;
             virtual void setIntensity(float intensity) = 0;
             virtual void setModel(LightingModels model) = 0;
@@ -94,6 +109,7 @@ namespace tdl {
                 const glm::vec3& direction
             ) {
                 position_ += glm::vec4(direction, 0);
+                light_model_->translate(direction);
             }
 
             virtual void exportGPU() = 0;
@@ -103,6 +119,8 @@ namespace tdl {
             Light ubo_data_ {};
             bool has_changed_ = true;
             glm::vec4 color_ {0.0f};
+            glm::vec4 direction_ {0.0f};
+            float fov_ = 75.0f;
             float intensity_ = 0.0f;
             LightingModels model_ = LightingModels::BLINNPHONG;
             glm::vec4 position_ {0.0f};
@@ -133,7 +151,7 @@ namespace tdl {
             void exportGPU() override {
                 ubo_data_.color = color_;
                 ubo_data_.data.y = intensity_;
-                ubo_data_.data.z = (float)model_;
+                ubo_data_.data.z = static_cast<float>(model_);
                 ubo_data_.data.w = 0; // ambient
             }
     };
@@ -144,13 +162,16 @@ namespace tdl {
                 const glm::vec4& position = glm::vec4 {0.0f},
                 const glm::vec4& color = glm::vec4 {1.0f, 1.0f, 1.0f, 0.0f},
                 float intensity = 250.0f,
-                LightingModels model = LightingModels::PHONG
+                LightingModels model = LightingModels::BLINNPHONG
             ) : LightInterface(
                 position,
                 color,
                 intensity,
                 model
-            ) {}
+            ) {
+                light_model_->setNoLight();
+                light_model_->translate(position_);
+            }
 
             void setColor (
                 const glm::vec4& color
@@ -168,25 +189,59 @@ namespace tdl {
                 ubo_data_.color = color_;
                 ubo_data_.position = position_;
                 ubo_data_.data.y = intensity_;
-                ubo_data_.data.z = (int)model_;
+                ubo_data_.data.z = static_cast<float>(model_);
                 ubo_data_.data.w = 1; // point
-                light_model_->translate(position_);
             }
     };
 
-    // class DirectionalLight final : PointLight {
-    //     public:
-    //         DirectionalLight() = default;
-    //
-    //         ~DirectionalLight() override = default;
-    //     private:
-    //         glm::vec4 direction_ {0.0f};
-    //         float fov_ = 0.0f;
-    // };
+    class DirectionalLight final : public LightInterface {
+        public:
+            explicit DirectionalLight (
+                const glm::vec4& position = glm::vec4 {0.0f},
+                const glm::vec4& direction = glm::vec4 {0.0f, 1.0f, 0.0f, 0.0f},
+                const glm::vec4& color = glm::vec4 {1.0f, 1.0f, 1.0f, 0.0f},
+                const float fov = 15.0f,
+                const float intensity = 250.0f,
+                const LightingModels model = LightingModels::BLINNPHONG
+            ) : LightInterface (
+                    position,
+                    direction,
+                    color,
+                    fov,
+                    intensity,
+                    model
+                )
+            {
+                light_model_->setNoLight();
+                light_model_->translate(position_);
+            }
+
+            void setColor (
+                const glm::vec4& color
+            ) override { color_ = color; has_changed_ = true; }
+
+            void setIntensity (
+                const float intensity
+            ) override { intensity_ = intensity; has_changed_ = true; }
+
+            void setModel (
+                const LightingModels model
+            ) override { model_ = model; has_changed_ = true; }
+
+            void exportGPU() override {
+                ubo_data_.color = color_;
+                ubo_data_.position = position_;
+                ubo_data_.direction = direction_;
+                ubo_data_.data.x = fov_;
+                ubo_data_.data.y = intensity_;
+                ubo_data_.data.z = static_cast<float>(model_);
+                ubo_data_.data.w = 2; // directional
+            }
+    };
 
     template <typename T, typename... Args>
     requires std::derived_from<T, LightInterface>
-    std::shared_ptr<LightInterface> make_light(
+    std::shared_ptr<LightInterface> make_light (
         Args... args
     ) {
         return std::make_shared<T>(args...);
