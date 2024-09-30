@@ -333,7 +333,7 @@ void tdl::Image::updateDescriptor() const {
 
    const vk::WriteDescriptorSet descriptor_write {
         descriptor_set_,
-        1,
+        0,
         0,
         1,
         vk::DescriptorType::eCombinedImageSampler,

@@ -75,6 +75,9 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
     std::vector<Vertex> verts;
     size_t start = 0; // start of slice of current object in the verts vector
 
+    glm::vec2 min_uv { INFINITY };
+    glm::vec2 max_uv {-INFINITY };
+
     std::ifstream file { path }; // open OBJ file
 
     if (!file.is_open()) {
@@ -109,10 +112,11 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
 
                 // create and add new object
                 if (materials[currrent_mtl].diffuse_is_map) {
+                    int a, b, c = 0;
                     const stbi_uc* pixels = stbi_load(
                         materials[currrent_mtl].diffuse_map_path.c_str(),
-                        nullptr, nullptr,
-                        nullptr,
+                        &a, &b,
+                        &c,
                         STBI_rgb_alpha
                     );
 
@@ -203,10 +207,11 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
     auto mesh = std::make_shared<Mesh>(slice);
 
     if (materials[currrent_mtl].diffuse_is_map) {
+        int a, b, c = 0;
         const stbi_uc* pixels = stbi_load(
             materials[currrent_mtl].diffuse_map_path.c_str(),
-            nullptr, nullptr,
-            nullptr,
+            &a, &b,
+            &c,
             STBI_rgb_alpha
         );
 
@@ -222,6 +227,28 @@ std::vector<std::pair<std::string, std::shared_ptr<tdl::ObjectInterface>>> tdl::
     objects.emplace_back(obj_name, object);
 
     file.close();
+
+    for (const auto& obj : objects | std::ranges::views::values) {
+        for (auto& vert : obj->mesh_->vertices_) {
+            min_uv.x = std::min(vert.uv.x, min_uv.x);
+            min_uv.y = std::min(vert.uv.y, min_uv.y);
+
+            max_uv.x = std::max(vert.uv.x, max_uv.x);
+            max_uv.y = std::max(vert.uv.y, max_uv.y);
+        }
+
+        for (auto& vert : obj->mesh_->vertices_) {
+            vert.uv.x += (-1 * min_uv.x);
+            vert.uv.y += (-1 * min_uv.y);
+
+            vert.uv.x /= (max_uv.x - min_uv.x);
+            vert.uv.y /= (max_uv.y - min_uv.y);
+        }
+
+        max_uv = glm::vec2 { -INFINITY };
+        min_uv = glm::vec2 { INFINITY };
+
+    }
 
     return objects;
 }
@@ -782,13 +809,13 @@ std::vector<std::string> tdl::Model::getKeys() const {
 
 void tdl::Model::imageTick() {
     for (const auto &obj: objects_ | std::views::values) {
-        obj->tex_->setNextImage(); // load all texture frames as images
+        obj->imageTick(); // load all texture frames as images
     }
 }
 
 void tdl::Model::frameTick() {
     for (const auto &obj: objects_ | std::views::values) {
-        obj->tex_->loadNextFrame(); // tick all video textures to next frame
+        obj->frameTick(); // tick all video textures to next frame
     }
 }
 

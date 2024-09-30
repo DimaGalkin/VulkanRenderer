@@ -161,7 +161,7 @@ namespace tdl {
             explicit PointLight (
                 const glm::vec4& position = glm::vec4 {0.0f},
                 const glm::vec4& color = glm::vec4 {1.0f, 1.0f, 1.0f, 0.0f},
-                float intensity = 250.0f,
+                float intensity = 850.0f,
                 LightingModels model = LightingModels::BLINNPHONG
             ) : LightInterface(
                 position,

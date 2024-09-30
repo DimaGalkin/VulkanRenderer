@@ -27,7 +27,7 @@ void tdl::ThreeDL::internalAnimation(
         // control code only called if a camera controller was passed to setCamera()
         if (controlled_) {
             ubo_mutex_.lock();
-            controller_->tick(keys_, .001f / delta);
+            controller_->tick(keys_, delta);
             ubo_mutex_.unlock();
         }
     }

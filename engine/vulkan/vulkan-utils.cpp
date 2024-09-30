@@ -305,7 +305,7 @@ void tdl::Vlkn::pickPhysicalDevice() {
     const std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
     if (devices.empty()) throw std::runtime_error("ERR 037: No devices found! Vlkn::pickPhysicalDevice(...)");
 
-    physical_device_ = devices[1];
+    physical_device_ = devices[0];
     std::cout << physical_device_.getProperties().deviceName << std::endl;
 
     // for (const auto& device : devices) {
@@ -695,12 +695,12 @@ void tdl::Vlkn::createSampler() {
 
     const vk::SamplerCreateInfo sampler_info {
             {},
-            vk::Filter::eNearest,
-            vk::Filter::eNearest,
-            vk::SamplerMipmapMode::eNearest,
-            vk::SamplerAddressMode::eClampToBorder,
-            vk::SamplerAddressMode::eClampToBorder,
-            vk::SamplerAddressMode::eClampToBorder,
+            vk::Filter::eLinear,
+            vk::Filter::eLinear,
+            vk::SamplerMipmapMode::eLinear,
+            vk::SamplerAddressMode::eRepeat,
+            vk::SamplerAddressMode::eRepeat,
+            vk::SamplerAddressMode::eRepeat,
             0.0f,
             properties.limits.maxSamplerAnisotropy > 1.0f, // enable if anisotropy > 1 is supported
             properties.limits.maxSamplerAnisotropy,
@@ -1115,11 +1115,11 @@ void tdl::Vlkn::createDescriptorPool() {
     const vk::DescriptorPoolSize pool_sizes[] {
         {
             vk::DescriptorType::eUniformBuffer,
-            static_cast<uint32_t>(max_f_frames_) + 16
+            256
         },
         {
             vk::DescriptorType::eCombinedImageSampler,
-            1
+            256
         }
     };
 

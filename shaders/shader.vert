@@ -5,6 +5,7 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 proj;
     mat4 camera;
     mat4 rotation;
+    vec4 data;
 } ubo;
 
 struct Material {
@@ -43,6 +44,8 @@ layout(location = 7) out mat4 outTranslation;
 void main() {
     vec4 final_pos = mbo.translation * mbo.rotation * obo.translation * obo.rotation * vec4(inPosition, 1.0);
     gl_Position =  ubo.proj * ubo.rotation * ubo.camera * final_pos;
+    float dist = sqrt(((ubo.data.x) * gl_Position.x * gl_Position.x) + ((ubo.data.x) * gl_Position.y * gl_Position.y) + (gl_Position.z));
+    if (ubo.data.y > 0) gl_Position.xy /= dist;
 
     fragTexCoord = inTexCoord;
     outPosition = final_pos.xyz;

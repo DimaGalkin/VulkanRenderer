@@ -126,28 +126,28 @@ void tdl::DefaultController::keyPressed(
     switch (key) {
         // forward
         case GLFW_KEY_W:
-            camera_mat_ = glm::translate(camera_mat_, forward_ * 10.0f * delta_t);
+            camera_mat_ = glm::translate(camera_mat_, forward_ * (0.001f / delta_t));
             break;
         // backward
         case GLFW_KEY_S:
-            camera_mat_ = glm::translate(camera_mat_, forward_ * -10.0f * delta_t);
+            camera_mat_ = glm::translate(camera_mat_, forward_ * -(0.001f / delta_t));
             break;
         // left
         case GLFW_KEY_A:
-            camera_mat_ = glm::translate(camera_mat_, right_ * 10.0f * delta_t);
+            camera_mat_ = glm::translate(camera_mat_, right_ * (0.001f / delta_t));
             break;
         // right
         case GLFW_KEY_D:
-            camera_mat_ = glm::translate(camera_mat_, right_ * -10.0f * delta_t);
+            camera_mat_ = glm::translate(camera_mat_, right_ * -(0.001f / delta_t));
             break;
         // rotate left
         case GLFW_KEY_Q:
-            rotation_mat_ = glm::rotate(rotation_mat_, -delta_t, {0, 1, 0});
+            rotation_mat_ = glm::rotate(rotation_mat_, -(0.001f / delta_t), {0, 1, 0});
 
             break;
         // rotate right
         case GLFW_KEY_E:
-            rotation_mat_ = glm::rotate(rotation_mat_, delta_t, {0, 1, 0});
+            rotation_mat_ = glm::rotate(rotation_mat_, (0.001f / delta_t), {0, 1, 0});
 
             break;
         default:

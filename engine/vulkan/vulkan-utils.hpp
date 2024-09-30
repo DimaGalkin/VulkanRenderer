@@ -51,6 +51,7 @@ namespace tdl {
         glm::mat4 proj;
         glm::mat4 camera;
         glm::mat4 rotation;
+        glm::vec4 data = {1.0f, 0.0f, 0.0f, 0.0f};
     };
 
     /**

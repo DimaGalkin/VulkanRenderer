@@ -39,7 +39,11 @@ vec3 calculatePointLight(
         float intensity,
         float type
 ) {
-    vec3 light_direction = position - positionIn;
+    position.y = -position.y;
+    vec4 pos = inTranslation * vec4(position, 0.0);
+    vec4 dir = inTranslation * vec4(positionIn, 0.0);
+
+    vec3 light_direction = (pos.xyz - dir.xyz);
     float distance_to_light = pow(length(light_direction), 2.0);
     light_direction = normalize(light_direction);
     normal = normalize(normal);
@@ -56,8 +60,7 @@ vec3 calculatePointLight(
                              inSpecular * specular_value * light_color * intensity / distance_to_light;
     }
 
-    vec4 pos = inTranslation * vec4(positionIn, 0.0);
-    vec3 look_direction = normalize(-(pos.xyz / pos.w));
+    vec3 look_direction = normalize(-dir.xyz);
 
     if (type == 1.0) { // blinn-phong shading
         vec3 halfway = normalize(light_direction + look_direction);
@@ -95,6 +98,8 @@ bool point_in_light(
 void main() {
     vec4 diffuse_color = texture(texSampler, fragTexCoord);
     outColor = vec4(0, 0, 0, 0);
+    outColor = diffuse_color;
+    return;
 
     if (inSpecularExp.y > 0) { // no light
         outColor = diffuse_color;

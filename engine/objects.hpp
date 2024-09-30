@@ -446,6 +446,7 @@ namespace tdl {
     class ObjectInterface {
         friend class Model;
         friend class Vlkn;
+        friend class OBJLoader;
 
         public:
             explicit ObjectInterface (
@@ -532,6 +533,7 @@ namespace tdl {
     class Object final : public ObjectInterface {
         friend class Model;
         friend class Vlkn;
+        friend class OBJLoader;
 
         public:
             /**
